@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct · AI 최적 상품 추천</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js"></script>
+<style>
+  .ai-hero { background: linear-gradient(135deg, #1e1b4b 0%, #0052cc 50%, #00c7ae 100%);
+    color: #fff; border-radius: 24px; padding: 50px; position: relative; overflow: hidden; }
+  .ai-hero::before { content: ''; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 60%); }
+  .ai-hero-grid { display: grid; grid-template-columns: 1fr 360px; gap: 40px; position: relative; z-index: 1; }
+  .ai-hero h1 { font-size: 38px; font-weight: 900; letter-spacing: -0.7px; line-height: 1.15; margin-bottom: 14px; }
+  .ai-hero p { font-size: 15px; opacity: 0.88; line-height: 1.65; max-width: 540px; margin-bottom: 24px; }
+  .ai-meta { display: flex; gap: 16px; margin-top: 20px; }
+  .ai-meta-item { background: rgba(255,255,255,0.12); padding: 10px 16px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.18); font-size: 12px; }
+  .ai-meta-item b { font-size: 18px; display: block; font-weight: 900; }
+
+  .ai-config { background: rgba(255,255,255,0.1); border-radius: 16px; padding: 20px;
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+  .ai-config h4 { font-size: 13px; font-weight: 800; margin-bottom: 14px; opacity: 0.9; }
+  .weight-row { padding: 8px 0; }
+  .weight-row .top { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .weight-row .top b { color: var(--accent); }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  /* No.1 card */
+  .top1 { background: #fff; border-radius: 24px; border: 3px solid var(--accent);
+    box-shadow: 0 30px 60px -10px rgba(0,199,174,0.25); margin-top: -30px;
+    position: relative; z-index: 2; overflow: hidden; }
+  .top1-ribbon { position: absolute; top: 24px; left: 0; background: var(--accent);
+    color: #fff; padding: 6px 22px; font-size: 12px; font-weight: 900; letter-spacing: 1px;
+    border-radius: 0 6px 6px 0; }
+  .top1-grid { display: grid; grid-template-columns: 1.4fr 1fr; padding: 40px; gap: 40px; }
+  .top1-left .insurer-row { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--text-3); margin-bottom: 10px; }
+  .top1-left h2 { font-size: 36px; font-weight: 900; letter-spacing: -0.8px; line-height: 1.2; margin-bottom: 16px; }
+  .top1-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+  .top1-features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .top1-feat { padding: 18px; background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    border-radius: 14px; border: 1px solid #99f6e4; }
+  .top1-feat i { font-size: 22px; color: var(--accent-dark); margin-bottom: 8px; }
+  .top1-feat .v { font-size: 17px; font-weight: 800; color: var(--text-1); margin-bottom: 3px; }
+  .top1-feat .l { font-size: 12px; color: var(--text-3); }
+  .top1-reason { background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent); }
+  .top1-reason h4 { font-size: 13px; font-weight: 800; color: var(--accent-dark); margin-bottom: 6px; }
+  .top1-reason p { font-size: 14px; line-height: 1.7; color: var(--text-2); }
+
+  .top1-right { background: var(--surface-2); border-radius: 18px; padding: 28px;
+    border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; }
+  .top1-price { font-size: 14px; color: var(--text-3); margin-bottom: 4px; }
+  .top1-price-big { font-size: 48px; font-weight: 900; color: var(--primary); line-height: 1; }
+  .top1-price-big .unit { font-size: 18px; color: var(--text-3); font-weight: 700; }
+  .top1-saving { background: #fee2e2; color: #991b1b; padding: 8px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 800; display: inline-block; margin-top: 12px; }
+
+  /* 점수 비교 */
+  .score-section { margin-top: 50px; }
+  .score-title { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .score-title h3 { font-size: 24px; font-weight: 900; letter-spacing: -0.4px; }
+  .score-grid { background: #fff; border-radius: 18px; padding: 32px;
+    border: 1px solid var(--border); }
+  .score-header { display: grid; grid-template-columns: 200px repeat(4, 1fr) 100px; gap: 20px;
+    padding: 12px 0 16px; border-bottom: 2px solid var(--border); font-size: 13px;
+    color: var(--text-3); font-weight: 700; }
+  .score-prod-row { display: grid; grid-template-columns: 200px repeat(4, 1fr) 100px; gap: 20px;
+    padding: 18px 0; border-bottom: 1px solid var(--border); align-items: center; }
+  .score-prod-row:last-child { border-bottom: 0; }
+  .score-prod-row.no1 { background: linear-gradient(90deg, #fef9c3 0%, transparent 60%); border-radius: 8px; padding-left: 12px; }
+  .sp-name { font-size: 14px; }
+  .sp-name .ins { font-size: 12px; color: var(--text-3); }
+  .sp-name b { display: block; margin-top: 2px; }
+  .sp-bar { display: flex; align-items: center; gap: 10px; }
+  .sp-bar .b { flex: 1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .sp-bar .b i { display: block; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; transition: width 0.6s; }
+  .sp-bar span { font-size: 13px; font-weight: 700; color: var(--text-2); width: 28px; text-align: right; }
+  .sp-total { font-size: 22px; font-weight: 900; color: var(--primary); text-align: right; }
+  .sp-total .r { font-size: 11px; color: var(--text-3); font-weight: 500; }
+  .crown { color: #f59e0b; }
+
+  /* Runner-up */
+  .runners { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+  .runner { background: #fff; border-radius: 16px; padding: 24px; border: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+  .runner .rank { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2);
+    color: var(--text-2); display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; }
+  .runner h4 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .runner-price { font-size: 22px; font-weight: 900; color: var(--primary); }
+
+  /* AI reasoning chat */
+  .ai-chat { background: linear-gradient(135deg, #f1f5f9, #fff); border-radius: 18px;
+    padding: 30px; margin-top: 28px; border: 1px solid var(--border); }
+  .ai-chat-bubble { display: flex; gap: 14px; padding: 16px 0; }
+  .ai-chat-bubble .av { width: 38px; height: 38px; background: var(--primary); color: #fff;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+  .ai-chat-bubble .av.ac { background: var(--accent); }
+  .ai-bubble { background: #fff; border-radius: 14px; padding: 14px 18px; max-width: 720px;
+    font-size: 14px; line-height: 1.7; color: var(--text-2); border: 1px solid var(--border); }
+  .ai-bubble b { color: var(--primary); }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-inner">
+  <a href="08-myplans.html"><i class="fas fa-user-circle"></i> 마이페이지</a>
+</div></div>
+<nav class="gnb"><div class="gnb-inner">
+  <a href="01-home.html" class="logo">EasyDirect<span class="dot">.</span><span class="badge-confirm">착·착·착</span></a>
+  <ul class="gnb-menu">
+    <li onclick="location.href='01-home.html'">홈</li>
+    <li onclick="location.href='03-category.html'">상품안내</li>
+    <li>내보험찾기</li>
+    <li class="active">AI 추천</li>
+    <li onclick="location.href='08-myplans.html'">내 플랜</li>
+  </ul>
+</div></nav>
+
+<div class="container">
+  <div class="ai-hero">
+    <div class="ai-hero-grid">
+      <div>
+        <span style="background:rgba(0,199,174,0.25); color:var(--accent); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:800;">
+          <i class="fas fa-wand-magic-sparkles"></i> AI RECOMMENDATION
+        </span>
+        <h1 style="margin-top:14px;">김이지님께 가장 유리한<br>암보험 상품 1개를 골랐습니다.</h1>
+        <p>40개 다이렉트 상품을 보장범위·보험료·가입한도·갱신구조<br>
+          4축으로 분석한 결과, 가중치 합산 점수 <b style="color:var(--accent);">93.8점</b>의 상품을 추천드립니다.</p>
+        <div class="ai-meta">
+          <div class="ai-meta-item">분석 상품 <b>40개</b></div>
+          <div class="ai-meta-item">분석 항목 <b>16개</b></div>
+          <div class="ai-meta-item">평균 시간 <b>0.8초</b></div>
+        </div>
+      </div>
+      <div class="ai-config">
+        <h4>📊 추천 가중치 (직접 조절 가능)</h4>
+        <div class="weight-row">
+          <div class="top"><span>보장범위 우선</span><b>40%</b></div>
+          <input type="range" value="40" min="0" max="100">
+        </div>
+        <div class="weight-row">
+          <div class="top"><span>보험료 저렴</span><b>25%</b></div>
+          <input type="range" value="25" min="0" max="100">
+        </div>
+        <div class="weight-row">
+          <div class="top"><span>가입한도 큼</span><b>20%</b></div>
+          <input type="range" value="20" min="0" max="100">
+        </div>
+        <div class="weight-row">
+          <div class="top"><span>갱신최소화</span><b>15%</b></div>
+          <input type="range" value="15" min="0" max="100">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP 1 CARD -->
+  <div class="top1">
+    <div class="top1-ribbon">🏆 NO.1 추천</div>
+    <div class="top1-grid">
+      <div class="top1-left">
+        <div class="insurer-row">
+          <span class="tag tag-life" id="top1Type">손보</span>
+          <b style="color:var(--text-1); font-size:16px;" id="top1Insurer">DB손해보험</b>
+          <span style="margin-left:auto; color:var(--warn);">★★★★★ 4.9</span>
+        </div>
+        <h2 id="top1Name">프로미라이프 참좋은 암보험</h2>
+        <div class="top1-tags">
+          <span class="tag tag-blue" id="top1Plan">100세/30년납</span>
+          <span class="tag tag-gray" id="top1Renew">비갱신</span>
+          <span class="tag tag-mint"><i class="fas fa-check"></i> 가입가능 확인</span>
+          <span class="tag tag-orange">AI Score 93.8</span>
+        </div>
+
+        <div class="top1-features" id="top1Feat"></div>
+
+        <div class="top1-reason">
+          <h4><i class="fas fa-lightbulb"></i> 이 상품을 추천드린 이유</h4>
+          <p>김이지님이 가장 중시한 <b>보장범위(40%)</b>와 <b>가입한도(20%)</b> 항목에서 모두 상위권을 기록했습니다.
+            특히 <b>주요 5대암 진단비 추가 3,000만원</b>과 <b>암 생활비 월 200만 × 5년</b>은 동일 카테고리 5개사 중 유일하게 제공되며,
+            <b>유전자검사비 200만원 한도</b> 역시 표적치료 시대에 필수적인 보장입니다. 보험료는 평균 대비 11% 높지만,
+            제공 보장가치를 환산하면 가장 가성비가 우수한 상품입니다.</p>
+        </div>
+      </div>
+
+      <div class="top1-right">
+        <div>
+          <div class="top1-price">예상 월 보험료</div>
+          <div class="top1-price-big"><span id="top1Prem">58,000</span><span class="unit">원</span></div>
+          <span class="top1-saving">⚡ 보장 대비 가성비 1위</span>
+        </div>
+        <div>
+          <div style="margin-top:24px; padding-top:20px; border-top:1px dashed var(--border);">
+            <div class="text-xs text-3">총 보장 가치</div>
+            <div class="font-black mt-8" style="font-size:18px;">2억 4,200만원</div>
+            <div class="text-xs text-3 mt-8" style="line-height:1.6;">진단비 1억 + 생활비 1.2억 + 수술·치료비 약 2,200만</div>
+          </div>
+        </div>
+        <div class="flex gap-12 mt-24">
+          <button class="btn btn-primary btn-block btn-lg" onclick="goSubscribe()">
+            <i class="fas fa-arrow-right-long"></i> 1등 상품 바로 가입
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 점수 비교 -->
+  <div class="score-section">
+    <div class="score-title">
+      <div>
+        <h3>항목별 점수 비교 — 추천 근거</h3>
+        <p class="text-sm text-3 mt-8">5개사 상품을 4개 축으로 점수화하고 가중치를 적용한 결과입니다.</p>
+      </div>
+    </div>
+    <div class="score-grid">
+      <div class="score-header">
+        <div>상품</div>
+        <div><i class="fas fa-shield-heart"></i> 보장범위 (40%)</div>
+        <div><i class="fas fa-won-sign"></i> 보험료 (25%)</div>
+        <div><i class="fas fa-chart-bar"></i> 가입한도 (20%)</div>
+        <div><i class="fas fa-calendar"></i> 갱신구조 (15%)</div>
+        <div style="text-align:right;">종합점수</div>
+      </div>
+      <div id="scoreRows"></div>
+    </div>
+  </div>
+
+  <!-- Runner up -->
+  <h3 style="font-size:20px; font-weight:800; margin-top:36px; margin-bottom:14px;">🥈 2~3위 상품도 확인해보세요</h3>
+  <div class="runners" id="runners"></div>
+
+  <!-- AI 챗 reasoning -->
+  <div class="ai-chat">
+    <h3 style="font-size:18px; font-weight:800; margin-bottom:16px;"><i class="fas fa-comments" style="color:var(--primary)"></i> AI 분석 과정 (요약)</h3>
+    <div class="ai-chat-bubble">
+      <div class="av"><i class="fas fa-user"></i></div>
+      <div class="ai-bubble">제가 30대 사무직 남성, 가족력 없음입니다. 가장 적합한 암보험을 추천해주세요.</div>
+    </div>
+    <div class="ai-chat-bubble">
+      <div class="av ac"><i class="fas fa-robot"></i></div>
+      <div class="ai-bubble">
+        김이지님 프로필 분석 결과, <b>30대 남성</b>은 향후 30~40년의 장기 보장이 필요한 시기입니다.
+        설정하신 가중치(보장 40%, 가격 25%, 한도 20%, 갱신 15%)에 맞춰 5개사 상품을 점수화했습니다.
+      </div>
+    </div>
+    <div class="ai-chat-bubble">
+      <div class="av ac"><i class="fas fa-robot"></i></div>
+      <div class="ai-bubble">
+        분석 결과, <b>DB손해보험 프로미라이프 참좋은 암보험</b>이 종합 93.8점으로 1위입니다.
+        보장범위에서 5대암 추가진단비와 암 생활비(월 200만×5년)가 결정적이었습니다.
+        보험료는 1위 대비 11% 비싸지만, <b>보장가치 환산 시 가장 효율적</b>입니다.
+      </div>
+    </div>
+    <div class="ai-chat-bubble">
+      <div class="av ac"><i class="fas fa-robot"></i></div>
+      <div class="ai-bubble">
+        만약 <b>보험료를 더 중시</b>하시면 가중치를 조절해보세요. 보험료 50% 이상으로 올리면
+        KB 다이렉트 가성비 암보험이 1위로 바뀝니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="compare-cta" style="background: linear-gradient(135deg, #00c7ae, #0052cc); color: #fff; border-radius: 18px; padding: 28px 36px; margin-top: 32px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <h3 style="font-size:22px; font-weight:900; margin-bottom:4px;">추천 결과가 마음에 드시나요?</h3>
+      <p style="font-size:13px; opacity:0.92;">1등 상품을 바로 가입하거나 플랜으로 저장해두세요.</p>
+    </div>
+    <div class="flex gap-12">
+      <button class="btn btn-dark btn-lg" onclick="savePlan()"><i class="fas fa-bookmark"></i> 플랜 저장</button>
+      <button class="btn btn-accent btn-lg" onclick="goSubscribe()"><i class="fas fa-arrow-right-long"></i> 1등 상품 가입하기</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div><div class="logo" style="color:#fff;">EasyDirect<span class="dot">.</span></div></div>
+    <div></div><div></div><div></div>
+  </div>
+  <div class="footer-bottom">© 2026 EZinsu Co., Ltd.</div>
+</footer>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const CAT = params.get('cat') || 'cancer';
+
+  // 1등 산출 (가중치 적용 후 가장 높은 것)
+  const products = window.ED_DATA.products[CAT] || window.ED_DATA.products.cancer;
+  const w = { coverage: 0.4, price: 0.25, limit: 0.20, renewal: 0.15 };
+  const scored = products.map(p => ({
+    ...p, total: Math.round((p.scores.coverage * w.coverage + p.scores.price * w.price +
+                            p.scores.limit * w.limit + p.scores.renewal * w.renewal) * 10) / 10,
+  })).sort((a, b) => b.total - a.total);
+  const top1 = scored[0];
+
+  // TOP1 카드
+  document.getElementById('top1Type').textContent = top1.type;
+  document.getElementById('top1Type').className = 'tag ' + (top1.type === '생보' ? 'tag-life' : 'tag-nonlife');
+  document.getElementById('top1Insurer').textContent = top1.insurer;
+  document.getElementById('top1Name').textContent = top1.name;
+  document.getElementById('top1Plan').textContent = top1.plan;
+  document.getElementById('top1Renew').textContent = top1.renew;
+  document.getElementById('top1Prem').textContent = top1.premium.toLocaleString();
+  document.getElementById('top1Feat').innerHTML = top1.feat.map((f, i) => {
+    const icons = ['fa-shield-heart', 'fa-pills', 'fa-stethoscope', 'fa-money-bill-wave'];
+    return `<div class="top1-feat">
+      <i class="fas ${icons[i % 4]}"></i>
+      <div class="v">${f}</div>
+      <div class="l">핵심 특약</div>
+    </div>`;
+  }).join('');
+
+  // 점수 비교
+  const labels = { coverage: '보장범위', price: '보험료', limit: '가입한도', renewal: '갱신구조' };
+  document.getElementById('scoreRows').innerHTML = scored.map((p, i) => `
+    <div class="score-prod-row ${i === 0 ? 'no1' : ''}">
+      <div class="sp-name">
+        ${i === 0 ? '<i class="fas fa-crown crown"></i> ' : ''}
+        <span class="ins">${p.insurer}</span>
+        <b>${p.name.length > 20 ? p.name.slice(0, 19) + '…' : p.name}</b>
+      </div>
+      ${['coverage','price','limit','renewal'].map(k => `
+        <div class="sp-bar">
+          <div class="b"><i style="width:${p.scores[k]}%"></i></div>
+          <span>${p.scores[k]}</span>
+        </div>`).join('')}
+      <div class="sp-total">${p.total}<div class="r">/ 100</div></div>
+    </div>`).join('');
+
+  // Runner up
+  document.getElementById('runners').innerHTML = scored.slice(1, 3).map((p, i) => `
+    <div class="runner" onclick="location.href='04-product-detail.html?cat=${CAT}&id=${p.id}'" style="cursor:pointer;">
+      <div style="display:flex; gap:14px; align-items:flex-start;">
+        <div class="rank">${i + 2}</div>
+        <div>
+          <div class="text-sm text-3">${p.insurer} · ${p.type}</div>
+          <h4>${p.name}</h4>
+          <div class="flex gap-8 mt-8">
+            <span class="tag tag-blue">${p.renew}</span>
+            <span class="tag tag-gray">AI ${p.total}점</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="text-xs text-3">월 보험료</div>
+        <div class="runner-price">${p.premium.toLocaleString()}</div>
+      </div>
+    </div>`).join('');
+
+  function goSubscribe() {
+    location.href = `07-subscribe.html?cat=${CAT}&id=${top1.id}`;
+  }
+  function savePlan() {
+    window.ED.savePlan({
+      name: `AI 추천 ${window.ED_DATA.categories.find(c=>c.id===CAT).name} 플랜`,
+      category: CAT,
+      productIds: [top1.id],
+      productNames: [`${top1.insurer} ${top1.name}`],
+      premium: top1.premium,
+      memo: `AI 점수 ${top1.total}점 추천 상품`,
+    });
+    if (confirm('AI 추천 결과를 플랜으로 저장했습니다! 마이페이지로 이동할까요?'))
+      location.href = '08-myplans.html';
+  }
+</script>
+</body>
+</html>

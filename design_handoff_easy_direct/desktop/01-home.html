@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct · 메인</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js" defer></script>
+<style>
+  /* Hero */
+  .hero { background: linear-gradient(125deg, #0052cc 0%, #1e6ddb 45%, #00c7ae 100%);
+    color: #fff; padding: 60px 0 80px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -100px; right: -50px;
+    width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%); }
+  .hero-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2;
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+  .hero h1 { font-size: 50px; font-weight: 900; line-height: 1.15; letter-spacing: -1.2px; margin-bottom: 20px; }
+  .hero h1 .underline { background: linear-gradient(transparent 60%, rgba(0,199,174,0.45) 60%); padding: 0 4px; }
+  .hero p.sub { font-size: 18px; opacity: 0.92; line-height: 1.55; margin-bottom: 30px; }
+  .hero-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px; }
+  .hero-chip { background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28);
+    padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(6px); }
+
+  /* Quote Card in Hero */
+  .quote-card { background: #fff; border-radius: 20px; padding: 32px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.25); color: var(--text-1); }
+  .quote-card h3 { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+  .quote-card .sub-h { font-size: 13px; color: var(--text-3); margin-bottom: 22px; }
+  .quote-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .quote-card .field { margin-bottom: 14px; }
+  .quote-card label { font-size: 12px; }
+  .quote-card input, .quote-card select { padding: 11px 12px; font-size: 14px; }
+
+  /* 8 categories grid */
+  .cat-section { margin-top: -50px; position: relative; z-index: 3; }
+  .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    background: #fff; border-radius: 24px; padding: 28px; box-shadow: var(--shadow-md);
+    border: 1px solid var(--border); }
+  .cat-item { padding: 24px 16px; border-radius: 14px; text-align: center;
+    cursor: pointer; transition: 0.22s; border: 1.5px solid transparent;
+    background: linear-gradient(180deg, #fafbfd, #fff); }
+  .cat-item:hover { background: #fff; border-color: var(--primary);
+    box-shadow: 0 12px 24px -8px rgba(0,82,204,0.18); transform: translateY(-4px); }
+  .cat-item .ic { width: 60px; height: 60px; border-radius: 16px;
+    background: var(--primary-light); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin: 0 auto 12px; transition: 0.22s; }
+  .cat-item:hover .ic { background: var(--primary); color: #fff; transform: scale(1.05); }
+  .cat-item h4 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .cat-item p { font-size: 12px; color: var(--text-3); line-height: 1.4; }
+
+  /* 통합 조회 배너 */
+  .quote-banner { display: grid; grid-template-columns: 1fr auto; gap: 40px;
+    background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff;
+    border-radius: 24px; padding: 44px; margin-top: 28px; align-items: center;
+    position: relative; overflow: hidden; }
+  .quote-banner::before { content: '\f201'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+    position: absolute; right: -30px; bottom: -50px; font-size: 220px; opacity: 0.04; }
+  .quote-banner h2 { font-size: 30px; font-weight: 900; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .quote-banner p { font-size: 15px; opacity: 0.78; margin-bottom: 18px; }
+  .quote-banner-features { display: flex; gap: 28px; }
+  .qbf { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+  .qbf i { color: var(--accent); }
+
+  /* Section title */
+  .sec-title { display: flex; justify-content: space-between; align-items: flex-end;
+    margin: 70px 0 24px; }
+  .sec-title h2 { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
+  .sec-title p { font-size: 14px; color: var(--text-3); margin-top: 4px; }
+  .sec-title .more { font-size: 13px; color: var(--text-3); }
+  .sec-title .more:hover { color: var(--primary); }
+
+  /* 추천 상품 */
+  .recom-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .recom { background: #fff; border-radius: 16px; border: 1px solid var(--border);
+    overflow: hidden; cursor: pointer; transition: 0.22s; }
+  .recom:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
+  .recom-top { padding: 22px 22px 16px; border-bottom: 1px solid var(--border); }
+  .recom-insurer { font-size: 12px; font-weight: 700; color: var(--text-3); }
+  .recom-name { font-size: 17px; font-weight: 800; color: var(--text-1); margin: 6px 0 10px; line-height: 1.35; }
+  .recom-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .recom-body { padding: 20px 22px; }
+  .recom-feat { font-size: 13px; color: var(--text-3); display: flex; gap: 8px; margin-bottom: 8px; }
+  .recom-feat i { color: var(--accent-dark); font-size: 10px; margin-top: 5px; }
+  .recom-bottom { padding: 14px 22px; background: var(--surface-2); display: flex; justify-content: space-between; align-items: center; }
+  .recom-price-label { font-size: 12px; color: var(--text-3); }
+  .recom-price { font-size: 18px; font-weight: 900; color: var(--primary); }
+
+  /* Trust strip */
+  .trust { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;
+    padding: 40px; background: var(--surface-2); border-radius: 20px; margin-top: 40px; }
+  .trust-item { display: flex; gap: 16px; align-items: flex-start; }
+  .trust-item i { font-size: 28px; color: var(--primary); margin-top: 4px; }
+  .trust-item h4 { font-size: 15px; font-weight: 800; color: var(--text-1); margin-bottom: 4px; }
+  .trust-item p { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+
+  /* News + Reviews two-col */
+  .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+  .news-list { padding: 26px 28px; }
+  .news-list h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .news-row { display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .news-row:last-child { border-bottom: 0; }
+  .news-row .date { font-size: 12px; color: var(--text-4); }
+  .review-card { padding: 24px; }
+  .review-row { padding: 14px 0; border-bottom: 1px dashed var(--border); }
+  .review-row:last-child { border-bottom: 0; }
+  .stars { color: #fbbf24; font-size: 13px; margin-bottom: 6px; }
+
+  /* AI 강조 박스 */
+  .ai-callout { background: linear-gradient(125deg, #0f172a, #1e1b4b);
+    color: #fff; border-radius: 24px; padding: 50px; margin-top: 40px;
+    display: grid; grid-template-columns: 1.3fr 1fr; gap: 50px; align-items: center;
+    position: relative; overflow: hidden; }
+  .ai-callout::before { content: ''; position: absolute; top: -50px; right: -50px;
+    width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,199,174,0.25), transparent 60%); }
+  .ai-tag { display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,199,174,0.18); color: var(--accent); padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 18px; }
+  .ai-callout h2 { font-size: 36px; font-weight: 900; letter-spacing: -0.8px; line-height: 1.2; margin-bottom: 14px; }
+  .ai-callout p { font-size: 15px; opacity: 0.82; line-height: 1.6; margin-bottom: 28px; }
+  .ai-visual { position: relative; z-index: 1; }
+  .ai-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .ai-stat-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px; padding: 22px; backdrop-filter: blur(4px); }
+  .ai-stat-card .num { font-size: 36px; font-weight: 900; color: var(--accent); }
+  .ai-stat-card .lbl { font-size: 12px; opacity: 0.78; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span><i class="fas fa-bell"></i> 공지: 4세대 실손 전환 안내</span>
+    <a href="02-auth.html"><i class="fas fa-user-plus"></i> 회원가입</a>
+    <a href="02-auth.html"><i class="fas fa-sign-in-alt"></i> 로그인</a>
+    <a href="08-myplans.html"><i class="fas fa-user-circle"></i> 마이페이지</a>
+  </div>
+</div>
+
+<nav class="gnb">
+  <div class="gnb-inner">
+    <a href="01-home.html" class="logo">EasyDirect<span class="dot">.</span><span class="badge-confirm">착·착·착</span></a>
+    <ul class="gnb-menu">
+      <li class="active">홈</li>
+      <li onclick="location.href='03-category.html?cat=cancer'">상품안내</li>
+      <li>내보험찾기</li>
+      <li onclick="location.href='06-ai-recommend.html'">AI 추천</li>
+      <li onclick="location.href='08-myplans.html'">내 플랜</li>
+      <li>고객센터</li>
+    </ul>
+    <div class="flex gap-8">
+      <a href="07-subscribe.html" class="btn btn-accent btn-sm"><i class="fas fa-bolt"></i> 1분 가입</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-chips">
+        <span class="hero-chip"><i class="fas fa-shield-halved"></i> 국내 5대 보험사 통합조회</span>
+        <span class="hero-chip"><i class="fas fa-robot"></i> AI 상품 추천</span>
+        <span class="hero-chip"><i class="fas fa-bolt"></i> 1분 가입</span>
+      </div>
+      <h1>
+        다이렉트 보험,<br>
+        <span class="underline">한 곳에서 비교하고</span><br>
+        한 번에 가입하세요.
+      </h1>
+      <p class="sub">국내 모든 보험사 다이렉트 상품을 동일한 화면에서 보고,<br>
+        AI가 내게 가장 유리한 상품을 추천해드립니다.</p>
+      <div class="flex gap-12">
+        <a href="03-category.html?cat=car" class="btn btn-accent btn-lg"><i class="fas fa-car"></i> 자동차 보험료 조회</a>
+        <a href="06-ai-recommend.html" class="btn btn-outline btn-lg" style="background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.4); color:#fff;">
+          <i class="fas fa-wand-magic-sparkles"></i> AI 맞춤 추천 받기
+        </a>
+      </div>
+    </div>
+
+    <div class="quote-card">
+      <h3>30초 통합 보험료 조회</h3>
+      <p class="sub-h">한 번 입력하면 8개 카테고리, 40개 상품 보험료가 한꺼번에 조회됩니다.</p>
+      <div class="quote-row">
+        <div class="field">
+          <label>생년월일</label>
+          <input type="text" id="qBirth" value="1989.03.21">
+        </div>
+        <div class="field">
+          <label>성별</label>
+          <select id="qGender">
+            <option value="M" selected>남성</option>
+            <option value="F">여성</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>직업</label>
+          <select id="qJob">
+            <option>사무직</option><option>영업/서비스</option><option>운전직</option><option>현장/생산직</option><option>전문직</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>거주지</label>
+          <select id="qAddr">
+            <option>서울특별시</option><option>경기도</option><option>인천광역시</option><option>부산광역시</option><option>기타 광역시·도</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" onclick="saveQuote()"><i class="fas fa-magnifying-glass-chart"></i> 8개 카테고리 한꺼번에 조회</button>
+      <p class="text-xs text-3 mt-12" style="text-align:center;"><i class="fas fa-lock"></i> 개인정보는 조회 목적으로만 사용됩니다</p>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <!-- 8 Categories -->
+  <div class="cat-section">
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+
+  <!-- 통합 조회 배너 -->
+  <div class="quote-banner">
+    <div>
+      <h2><i class="fas fa-grip-vertical"></i> 모든 보험사를 한 화면에</h2>
+      <p>삼성화재·DB손보·KB손보·현대해상·메리츠화재·삼성생명·한화생명·교보생명 등<br>
+        주요 보험사의 다이렉트 상품을 동일한 디자인으로 비교하고 가입하세요.</p>
+      <div class="quote-banner-features">
+        <div class="qbf"><i class="fas fa-check-circle"></i> 약관 원문 그대로 표시</div>
+        <div class="qbf"><i class="fas fa-check-circle"></i> 보험료 동시 조회</div>
+        <div class="qbf"><i class="fas fa-check-circle"></i> 가입가능여부 사전 체크</div>
+      </div>
+    </div>
+    <a href="03-category.html?cat=cancer" class="btn btn-accent btn-lg" style="white-space:nowrap;">
+      <i class="fas fa-arrow-right-long"></i> 통합조회 시작하기
+    </a>
+  </div>
+
+  <!-- 추천 상품 -->
+  <div class="sec-title">
+    <div>
+      <h2>오늘의 추천 다이렉트 상품</h2>
+      <p>가입자가 가장 많이 선택한 보험을 모았습니다</p>
+    </div>
+    <a href="03-category.html?cat=cancer" class="more">전체보기 <i class="fas fa-chevron-right"></i></a>
+  </div>
+  <div class="recom-grid" id="recomGrid"></div>
+
+  <!-- AI Callout -->
+  <div class="ai-callout">
+    <div>
+      <span class="ai-tag"><i class="fas fa-microchip"></i> AI 추천 엔진</span>
+      <h2>40개 상품을 1초 만에<br>비교·분석해 드립니다.</h2>
+      <p>보장범위·보험료·가입한도·갱신구조 등 보험 가입에 필요한 모든 항목을<br>
+        AI가 가중치별로 분석하여 가장 최적의 상품 1개를 추천합니다.</p>
+      <a href="06-ai-recommend.html" class="btn btn-accent btn-lg"><i class="fas fa-wand-magic-sparkles"></i> 지금 AI 추천 받기</a>
+    </div>
+    <div class="ai-visual">
+      <div class="ai-stats">
+        <div class="ai-stat-card"><div class="num">8</div><div class="lbl">상품 카테고리</div></div>
+        <div class="ai-stat-card"><div class="num">40+</div><div class="lbl">분석 상품 수</div></div>
+        <div class="ai-stat-card"><div class="num">4</div><div class="lbl">비교 축 (보장/가격/한도/갱신)</div></div>
+        <div class="ai-stat-card"><div class="num">1초</div><div class="lbl">평균 추천 시간</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trust -->
+  <div class="trust">
+    <div class="trust-item"><i class="fas fa-file-shield"></i><div>
+      <h4>약관 원문 그대로</h4>
+      <p>보험사 정식 약관 보장내용을<br>한 글자도 다르지 않게 표시</p></div></div>
+    <div class="trust-item"><i class="fas fa-id-card"></i><div>
+      <h4>실명인증 가입가능 체크</h4>
+      <p>실명인증 후 보험사에 실제<br>가입가능 여부를 즉시 조회</p></div></div>
+    <div class="trust-item"><i class="fas fa-handshake"></i><div>
+      <h4>다이렉트 동일 절차</h4>
+      <p>각 보험사 정식 다이렉트 청약<br>프로세스를 그대로 사용</p></div></div>
+    <div class="trust-item"><i class="fas fa-headset"></i><div>
+      <h4>가입 후에도 한곳에서</h4>
+      <p>여러 보험사 계약을 EasyDirect<br>마이페이지에서 통합 관리</p></div></div>
+  </div>
+
+  <!-- News + Reviews -->
+  <div class="sec-title">
+    <div><h2>보험 소식 & 가입 후기</h2></div>
+  </div>
+  <div class="two-col">
+    <div class="card news-list">
+      <h3><i class="fas fa-newspaper" style="color:var(--primary)"></i> 보험상품 소식</h3>
+      <div class="news-row"><span>[공지] 4세대 실손 비급여 할증·할인 안내</span><span class="tag tag-red">HOT</span></div>
+      <div class="news-row"><span>[신규] 메리츠 마이카 다이렉트 신규 7% 할인 출시</span><span class="tag tag-mint">NEW</span></div>
+      <div class="news-row"><span>[안내] 한화생명 저해지 종신 보험료 18% 인하</span><span class="date">06.24</span></div>
+      <div class="news-row"><span>[팁] T맵 안전운전 점수로 자동차보험 13% 할인받기</span><span class="date">06.20</span></div>
+      <div class="news-row"><span>[리포트] 2026 상반기 다이렉트 자동차보험 비교</span><span class="date">06.10</span></div>
+    </div>
+    <div class="card review-card">
+      <h3 style="font-size:18px; font-weight:800; margin-bottom:14px; display:flex; gap:10px; align-items:center;">
+        <i class="fas fa-user-check" style="color:var(--accent-dark)"></i> 실시간 가입 후기</h3>
+      <div class="review-row">
+        <div class="stars">★★★★★</div>
+        <p style="font-size:14px; color:var(--text-2);">"5개사 자동차보험료가 같은 화면에 나오니 비교가 정말 쉬워요."</p>
+        <p class="text-xs text-3 mt-8">최*호 님 · 30대 직장인 · 자동차보험</p>
+      </div>
+      <div class="review-row">
+        <div class="stars">★★★★★</div>
+        <p style="font-size:14px; color:var(--text-2);">"AI 추천이 진짜 제가 원하던 보장을 골라줘서 신기했어요."</p>
+        <p class="text-xs text-3 mt-8">정*윤 님 · 40대 주부 · 암보험</p>
+      </div>
+      <div class="review-row">
+        <div class="stars">★★★★☆</div>
+        <p style="font-size:14px; color:var(--text-2);">"가입가능여부를 미리 알려주니 거절 걱정 없이 신청했습니다."</p>
+        <p class="text-xs text-3 mt-8">박*수 님 · 50대 자영업 · 건강보험</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="logo" style="color:#fff; margin-bottom:14px;">EasyDirect<span class="dot">.</span></div>
+      <p style="font-size:13px; line-height:1.85; opacity:0.78;">
+        다이렉트 보험의 새로운 기준 — 이지다이렉트<br>
+        (주)이지인슈 · 착·착·착 AI 보험 플랫폼<br>
+        대표: 홍길동 · 사업자등록번호 123-45-67890</p>
+    </div>
+    <div><h4>상품안내</h4><ul>
+      <li>실손보험</li><li>건강보험</li><li>암보험</li><li>운전자/상해</li>
+      <li>사망보험</li><li>화재보험</li><li>펫보험</li><li>자동차보험</li></ul></div>
+    <div><h4>고객지원</h4><ul>
+      <li>1:1 문의</li><li>FAQ</li><li>보험금 청구 안내</li><li>공지사항</li></ul></div>
+    <div><h4>회사정보</h4>
+      <p style="font-size:12px; line-height:1.85; opacity:0.78;">
+        서울특별시 강서구 양천로 401<br>
+        대표번호: 1588-XXXX<br>
+        <span style="color:var(--accent);">평일 09:00 ~ 18:00</span></p></div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 EZinsu Co., Ltd. All rights reserved. · 모집등록번호 2026-서울강서-1234
+  </div>
+</footer>
+
+<script>
+  // 카테고리 그리드
+  const catGrid = document.getElementById('catGrid');
+  catGrid.innerHTML = window.ED_DATA.categories.map(c => `
+    <a href="03-category.html?cat=${c.id}" class="cat-item">
+      <div class="ic"><i class="fas ${c.icon}"></i></div>
+      <h4>${c.name}</h4>
+      <p>${c.tagline}</p>
+    </a>
+  `).join('');
+
+  // 추천 상품 (각 카테고리 첫 상품 4개)
+  const allFirst = ['cancer','car','health','driver']
+    .map(k => ({...window.ED_DATA.products[k][0], catId: k}));
+  document.getElementById('recomGrid').innerHTML = allFirst.map((p, i) => {
+    const tags = ['BEST', 'HOT', '추천', '가성비'];
+    const tagClasses = ['tag-red', 'tag-orange', 'tag-mint', 'tag-blue'];
+    return `
+    <a href="04-product-detail.html?cat=${p.catId}&id=${p.id}" class="recom">
+      <div class="recom-top">
+        <span class="tag ${tagClasses[i]}">${tags[i]}</span>
+        <div class="recom-name">${p.name}</div>
+        <div class="recom-tags">
+          <span class="tag tag-gray">${p.insurer}</span>
+          <span class="tag ${p.type === '생보' ? 'tag-life' : 'tag-nonlife'}">${p.type}</span>
+          <span class="tag tag-blue">${p.renew}</span>
+        </div>
+      </div>
+      <div class="recom-body">
+        ${p.feat.slice(0, 2).map(f => `<div class="recom-feat"><i class="fas fa-circle"></i> ${f}</div>`).join('')}
+      </div>
+      <div class="recom-bottom">
+        <span class="recom-price-label">월 보험료</span>
+        <span class="recom-price">${p.premium.toLocaleString()}원~</span>
+      </div>
+    </a>`;
+  }).join('');
+
+  // Quote 저장
+  function saveQuote() {
+    const q = {
+      birth: document.getElementById('qBirth').value,
+      gender: document.getElementById('qGender').value,
+      job: document.getElementById('qJob').value,
+      address: document.getElementById('qAddr').value,
+    };
+    window.ED.setQuote(q);
+    location.href = '03-category.html?cat=cancer';
+  }
+</script>
+</body>
+</html>

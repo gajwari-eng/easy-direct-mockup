@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct · 상품 비교</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js"></script>
+<style>
+  /* category tabs */
+  .cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 0;
+    border-bottom: 1px solid var(--border); background: #fff; margin-bottom: 28px; }
+  .cat-tab { padding: 10px 18px; border-radius: 24px; font-size: 14px; font-weight: 600;
+    color: var(--text-3); border: 1.5px solid transparent; cursor: pointer;
+    background: var(--surface-2); transition: 0.18s; display: flex; align-items: center; gap: 6px; }
+  .cat-tab:hover { color: var(--primary); }
+  .cat-tab.active { background: var(--primary); color: #fff; }
+  .cat-tab i { font-size: 13px; }
+
+  /* Quote summary bar */
+  .quote-bar { background: linear-gradient(135deg, #0052cc, #1e6ddb); color: #fff;
+    border-radius: 16px; padding: 24px 32px; display: flex; gap: 24px; align-items: center;
+    margin-bottom: 28px; flex-wrap: wrap; }
+  .qb-label { font-size: 12px; opacity: 0.8; }
+  .qb-value { font-size: 16px; font-weight: 700; }
+  .qb-divider { width: 1px; height: 36px; background: rgba(255,255,255,0.25); }
+  .qb-cta { margin-left: auto; }
+
+  /* Action toolbar */
+  .toolbar { background: #fff; border-radius: 14px; padding: 16px 22px;
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center; border: 1px solid var(--border); margin-bottom: 18px; }
+  .toolbar .left { display: flex; gap: 10px; align-items: center; }
+  .toolbar .right { margin-left: auto; display: flex; gap: 10px; }
+
+  /* Product table */
+  .product-row { background: #fff; border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 26px; margin-bottom: 14px; display: grid; grid-template-columns: 60px 1fr 1.2fr 1fr 180px;
+    gap: 24px; align-items: center; transition: 0.2s; }
+  .product-row:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); }
+  .product-row.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,82,204,0.12); }
+  .pr-check { display: flex; align-items: center; justify-content: center; }
+  .pr-check input { width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer; }
+  .pr-insurer { font-size: 13px; color: var(--text-3); display: flex; gap: 6px; align-items: center; }
+  .pr-name { font-size: 17px; font-weight: 800; color: var(--text-1); margin: 6px 0 8px; line-height: 1.35; }
+  .pr-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pr-cover-label { font-size: 11px; color: var(--text-4); }
+  .pr-cover-val { font-size: 14px; font-weight: 700; color: var(--text-1); margin-top: 2px; }
+  .pr-cover-val small { font-size: 12px; color: var(--text-3); font-weight: 500; }
+  .pr-feat-list { font-size: 12px; color: var(--text-3); }
+  .pr-feat-list div { display: flex; gap: 6px; padding: 2px 0; }
+  .pr-feat-list i { color: var(--accent-dark); font-size: 9px; margin-top: 4px; }
+  .pr-price-area { text-align: right; }
+  .pr-price-label { font-size: 11px; color: var(--text-4); }
+  .pr-price { font-size: 26px; font-weight: 900; color: var(--primary); line-height: 1; margin: 4px 0 12px; }
+  .pr-price .unit { font-size: 14px; font-weight: 600; color: var(--text-3); }
+  .pr-actions { display: flex; gap: 6px; flex-direction: column; }
+  .pr-actions .btn { padding: 8px 12px; font-size: 12px; }
+
+  /* eligibility result chips */
+  .elig-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .elig-ok { background: #d1fae5; color: #065f46; }
+  .elig-no { background: #fee2e2; color: #991b1b; }
+  .elig-pending { background: #fef3c7; color: #92400e; }
+
+  /* plan list */
+  .plan-list-card { background: linear-gradient(135deg, #f8fafc, #f0f9ff);
+    border: 1px solid var(--border); border-radius: 18px; padding: 32px; margin-top: 40px; }
+  .plan-list-card h3 { font-size: 20px; font-weight: 900; letter-spacing: -0.3px;
+    margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+  .plan-list-card .sub { font-size: 13px; color: var(--text-3); margin-bottom: 22px; }
+  .plan-list-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+  .plan-item { padding: 12px 16px; background: #fff; border-radius: 10px; border: 1px solid var(--border);
+    font-size: 14px; color: var(--text-2); display: flex; gap: 10px; align-items: flex-start; cursor: pointer; transition: 0.18s; }
+  .plan-item:hover { border-color: var(--primary); background: var(--primary-light); }
+  .plan-item i { color: var(--primary); margin-top: 5px; font-size: 8px; flex-shrink: 0; }
+
+  /* footer cta */
+  .compare-cta { background: linear-gradient(135deg, #00c7ae, #0052cc); color: #fff;
+    border-radius: 18px; padding: 28px 36px; margin-top: 32px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .compare-cta h3 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .compare-cta p { font-size: 13px; opacity: 0.92; }
+
+  /* Save plan modal */
+  .field-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-inner">
+  <a href="02-auth.html"><i class="fas fa-user-plus"></i> 회원가입</a>
+  <a href="02-auth.html"><i class="fas fa-sign-in-alt"></i> 로그인</a>
+  <a href="08-myplans.html"><i class="fas fa-user-circle"></i> 마이페이지</a>
+</div></div>
+
+<nav class="gnb"><div class="gnb-inner">
+  <a href="01-home.html" class="logo">EasyDirect<span class="dot">.</span><span class="badge-confirm">착·착·착</span></a>
+  <ul class="gnb-menu">
+    <li onclick="location.href='01-home.html'">홈</li>
+    <li class="active">상품안내</li>
+    <li>내보험찾기</li>
+    <li onclick="location.href='06-ai-recommend.html'">AI 추천</li>
+    <li onclick="location.href='08-myplans.html'">내 플랜</li>
+    <li>고객센터</li>
+  </ul>
+  <div class="flex gap-8">
+    <a href="08-myplans.html" class="btn btn-ghost btn-sm"><i class="fas fa-bookmark"></i> 내 플랜</a>
+  </div>
+</div></nav>
+
+<div class="container">
+  <h1 class="page-title" id="pgTitle">암보험 비교 — 5개 보험사</h1>
+  <p class="page-sub" id="pgSub">대한민국 주요 보험사의 다이렉트 암보험 상품을 한 화면에서 비교하세요</p>
+
+  <!-- Category Tabs -->
+  <div class="cat-tabs" id="catTabs"></div>
+
+  <!-- Quote summary bar -->
+  <div class="quote-bar" id="quoteBar"></div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="left">
+      <span class="text-sm font-bold">정렬:</span>
+      <button class="btn btn-ghost btn-sm" onclick="setSort('price')"><i class="fas fa-won-sign"></i> 보험료 낮은순</button>
+      <button class="btn btn-ghost btn-sm" onclick="setSort('coverage')"><i class="fas fa-shield"></i> 보장 넓은순</button>
+      <button class="btn btn-ghost btn-sm" onclick="setSort('insurer')"><i class="fas fa-building"></i> 보험사순</button>
+    </div>
+    <div class="right">
+      <button class="btn btn-outline btn-sm" onclick="checkAllEligibility()"><i class="fas fa-id-card"></i> 전체 가입가능여부 체크</button>
+      <button class="btn btn-accent btn-sm" onclick="location.href='06-ai-recommend.html?cat='+CAT"><i class="fas fa-wand-magic-sparkles"></i> AI 최적 상품 추천</button>
+    </div>
+  </div>
+
+  <!-- Products -->
+  <div id="productList"></div>
+
+  <!-- Plan recommendations -->
+  <div class="plan-list-card">
+    <h3><i class="fas fa-lightbulb" style="color:var(--warn)"></i> 이 카테고리에서 자주 설계되는 플랜</h3>
+    <p class="sub">소비자 니즈에 맞춘 다양한 보장 조합. 클릭하면 해당 플랜을 자동 설계해 드립니다.</p>
+    <div class="plan-list-grid" id="planList"></div>
+  </div>
+
+  <!-- Compare CTA -->
+  <div class="compare-cta">
+    <div>
+      <h3><i class="fas fa-scale-balanced"></i> 선택한 상품을 항목별로 자세히 비교해보세요</h3>
+      <p>주계약·특약·면책·보험료를 한 표로 모아 비교합니다.</p>
+    </div>
+    <div class="flex gap-12">
+      <button class="btn btn-dark btn-lg" onclick="savePlan()"><i class="fas fa-bookmark"></i> 내 플랜 저장</button>
+      <button class="btn btn-accent btn-lg" onclick="goSubscribe()"><i class="fas fa-arrow-right-long"></i> 선택 상품 가입하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 실명인증 모달 -->
+<div class="modal-backdrop" id="kycModal">
+  <div class="modal">
+    <span class="modal-close" onclick="closeKyc()">&times;</span>
+    <h3 style="font-size:22px; font-weight:900; margin-bottom:6px;">실명인증</h3>
+    <p class="text-sm text-3" style="margin-bottom:24px;">보험사에 실제 가입가능 여부를 조회하기 위해 본인확인이 필요합니다.</p>
+    <div class="field">
+      <label>이름</label>
+      <input type="text" value="김이지" id="kycName">
+    </div>
+    <div class="field">
+      <label>주민등록번호</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" value="890321" id="kycRrn1" maxlength="6">
+        <span>–</span>
+        <input type="text" value="1******" id="kycRrn2" maxlength="7">
+      </div>
+    </div>
+    <div class="field">
+      <label>휴대폰 번호</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" value="010-2345-7821" id="kycPhone" style="flex:1">
+        <button class="btn btn-outline btn-sm" onclick="sendKycCode()"><i class="fas fa-message"></i> 인증번호</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>인증번호 (6자리)</label>
+      <input type="text" placeholder="123456" id="kycCode">
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="runKyc()">실명인증 후 가입가능 조회</button>
+    <p class="text-xs text-3 mt-12" style="text-align:center;">
+      <i class="fas fa-shield-halved"></i> 본인확인은 KCB·NICE 신용평가사를 통해 진행됩니다
+    </p>
+  </div>
+</div>
+
+<!-- 가입가능 결과 모달 -->
+<div class="modal-backdrop" id="eligModal">
+  <div class="modal">
+    <span class="modal-close" onclick="closeElig()">&times;</span>
+    <div style="text-align:center;">
+      <div id="eligIcon" style="font-size:60px; margin-bottom:12px;">✅</div>
+      <h3 id="eligTitle" style="font-size:24px; font-weight:900; margin-bottom:8px;">전체 가입 가능합니다</h3>
+      <p id="eligDesc" class="text-sm text-3" style="margin-bottom:24px;">5개 보험사 모두 실시간 인수 가능으로 확인되었습니다.</p>
+    </div>
+    <div id="eligList" style="margin-bottom:24px;"></div>
+    <button class="btn btn-accent btn-block btn-lg" onclick="closeElig()">확인</button>
+  </div>
+</div>
+
+<!-- 플랜 저장 모달 -->
+<div class="modal-backdrop" id="saveModal">
+  <div class="modal">
+    <span class="modal-close" onclick="closeSave()">&times;</span>
+    <h3 style="font-size:22px; font-weight:900; margin-bottom:6px;"><i class="fas fa-bookmark" style="color:var(--primary)"></i> 내 플랜에 저장</h3>
+    <p class="text-sm text-3" style="margin-bottom:24px;">선택하신 상품들을 플랜으로 묶어 저장하고 언제든 불러올 수 있습니다.</p>
+    <div class="field"><label>플랜 이름</label><input type="text" id="planName" placeholder="예: 우리 가족 암보험 종합플랜"></div>
+    <div class="field"><label>메모 (선택)</label><textarea id="planMemo" rows="3" placeholder="이 플랜에 대한 메모"></textarea></div>
+    <div style="background:var(--surface-2); padding:14px 16px; border-radius:10px; margin-bottom:18px;">
+      <div class="text-xs text-3">선택 상품</div>
+      <div id="planPreview" class="text-sm font-bold mt-8"></div>
+      <div class="text-xs text-3 mt-8">월 합계 보험료 <b id="planPremium" style="color:var(--primary); font-size:15px;"></b></div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="confirmSave()"><i class="fas fa-floppy-disk"></i> 플랜 저장하기</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div><div class="logo" style="color:#fff;">EasyDirect<span class="dot">.</span></div>
+      <p style="font-size:13px; line-height:1.85; opacity:0.78; margin-top:14px;">(주)이지인슈 · 착·착·착 AI 보험 플랫폼</p></div>
+    <div><h4>상품안내</h4><ul><li>실손보험</li><li>건강보험</li><li>암보험</li><li>운전자/상해</li></ul></div>
+    <div><h4>고객지원</h4><ul><li>1:1 문의</li><li>FAQ</li><li>공지사항</li></ul></div>
+    <div><h4>회사정보</h4><p style="font-size:12px; opacity:0.78;">대표번호: 1588-XXXX</p></div>
+  </div>
+  <div class="footer-bottom">© 2026 EZinsu Co., Ltd.</div>
+</footer>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  let CAT = params.get('cat') || 'cancer';
+  let selected = new Set();
+  let products = [];
+  const cat = window.ED_DATA.categories.find(c => c.id === CAT) || window.ED_DATA.categories[2];
+
+  // 카테고리 탭
+  document.getElementById('catTabs').innerHTML = window.ED_DATA.categories.map(c => `
+    <a href="03-category.html?cat=${c.id}" class="cat-tab ${c.id === CAT ? 'active' : ''}">
+      <i class="fas ${c.icon}"></i> ${c.name}
+    </a>`).join('');
+
+  // 페이지 제목
+  document.getElementById('pgTitle').textContent = `${cat.name} 비교 — 5개 보험사`;
+  document.getElementById('pgSub').textContent = `${cat.desc} · 약관 원문 그대로 비교하세요`;
+
+  // Quote bar (사용자 입력 정보)
+  const u = window.ED.getQuote();
+  document.getElementById('quoteBar').innerHTML = `
+    <div><div class="qb-label">생년월일</div><div class="qb-value">${u.birth}</div></div>
+    <div class="qb-divider"></div>
+    <div><div class="qb-label">성별</div><div class="qb-value">${u.gender === 'M' ? '남성' : '여성'}</div></div>
+    <div class="qb-divider"></div>
+    <div><div class="qb-label">직업</div><div class="qb-value">${u.job}</div></div>
+    <div class="qb-divider"></div>
+    <div><div class="qb-label">거주지</div><div class="qb-value">${u.address}</div></div>
+    <div class="qb-cta">
+      <button class="btn" style="background:rgba(255,255,255,0.18); color:#fff;" onclick="location.href='01-home.html#quote'">
+        <i class="fas fa-pen"></i> 입력 정보 수정
+      </button>
+    </div>`;
+
+  // 상품 리스트
+  products = (window.ED_DATA.products[CAT] || window.ED_DATA.products.cancer).slice();
+  renderProducts();
+
+  function renderProducts() {
+    document.getElementById('productList').innerHTML = products.map((p, idx) => `
+      <div class="product-row ${selected.has(p.id) ? 'selected' : ''}" data-id="${p.id}">
+        <div class="pr-check"><input type="checkbox" ${selected.has(p.id) ? 'checked' : ''} onchange="toggleSel('${p.id}')"></div>
+        <div>
+          <div class="pr-insurer">
+            <span class="tag ${p.type === '생보' ? 'tag-life' : 'tag-nonlife'}">${p.type}</span>
+            <span>${p.insurer}</span>
+          </div>
+          <div class="pr-name" onclick="goDetail('${p.id}')" style="cursor:pointer;">${p.name}</div>
+          <div class="pr-tags">
+            <span class="tag tag-gray">${p.plan}</span>
+            <span class="tag tag-blue">${p.renew}</span>
+            <span id="elig-${p.id}" class="elig-pill elig-pending"><i class="fas fa-circle-question"></i> 미확인</span>
+          </div>
+        </div>
+        <div>
+          <div class="pr-cover-label">주요 보장</div>
+          <div class="pr-cover-val">${p.cancer_main}</div>
+          <div class="pr-cover-label mt-8" style="margin-top:8px;">추가</div>
+          <div class="pr-cover-val"><small>${p.cancer_minor}</small></div>
+        </div>
+        <div class="pr-feat-list">
+          ${p.feat.map(f => `<div><i class="fas fa-circle"></i> ${f}</div>`).join('')}
+        </div>
+        <div class="pr-price-area">
+          <div class="pr-price-label">월 보험료</div>
+          <div class="pr-price">${p.premium.toLocaleString()}<span class="unit">원</span></div>
+          <div class="pr-actions">
+            <button class="btn btn-outline btn-sm" onclick="goDetail('${p.id}')">보장 상세보기</button>
+            <button class="btn btn-ghost btn-sm" onclick="checkOne('${p.id}')">가입가능여부</button>
+            <button class="btn btn-primary btn-sm" onclick="subscribeOne('${p.id}')">가입하기</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function toggleSel(id) {
+    if (selected.has(id)) selected.delete(id); else selected.add(id);
+    renderProducts();
+  }
+  function setSort(by) {
+    if (by === 'price') products.sort((a,b) => a.premium - b.premium);
+    else if (by === 'coverage') products.sort((a,b) => b.scores.coverage - a.scores.coverage);
+    else products.sort((a,b) => a.insurer.localeCompare(b.insurer));
+    renderProducts();
+  }
+  function goDetail(id) { location.href = `04-product-detail.html?cat=${CAT}&id=${id}`; }
+  function subscribeOne(id) {
+    window.ED.addToCart({ id, catId: CAT });
+    location.href = `07-subscribe.html?cat=${CAT}&id=${id}`;
+  }
+
+  // 가입가능여부
+  function checkOne(id) {
+    document.getElementById('kycModal').dataset.target = id;
+    document.getElementById('kycModal').classList.add('open');
+  }
+  function checkAllEligibility() {
+    document.getElementById('kycModal').dataset.target = 'all';
+    document.getElementById('kycModal').classList.add('open');
+  }
+  function closeKyc() { document.getElementById('kycModal').classList.remove('open'); }
+  function sendKycCode() { alert('인증번호 발송: 010-2345-7821\n(데모 — 아무 번호나 입력해도 통과합니다)'); }
+  function runKyc() {
+    closeKyc();
+    const target = document.getElementById('kycModal').dataset.target;
+    // 로딩
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);';
+    ov.innerHTML = `<div style="background:#fff;padding:36px 44px;border-radius:20px;text-align:center;">
+      <div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px;"></div>
+      <div style="font-weight:700;font-size:16px;">5개 보험사에 가입가능 여부 조회 중...</div>
+      <div style="font-size:13px;color:var(--text-3);margin-top:6px;">평균 2~3초 소요</div></div>`;
+    document.body.appendChild(ov);
+    setTimeout(() => {
+      ov.remove();
+      // 결과 적용
+      const items = products.map((p, i) => {
+        // 80% 가입가능 / 20% 부분불가 시뮬레이션
+        const ok = i !== 1; // 두번째 상품만 부분불가로 시연
+        return { ...p, eligible: ok, reason: ok ? '직전 5년 치료력 없음 — 표준체 인수' : '간편가입 고지문항 1번 해당 — 일반형 인수 거절, 간편형 가능' };
+      });
+      // chip 갱신
+      items.forEach(it => {
+        const el = document.getElementById('elig-' + it.id);
+        if (!el) return;
+        el.className = 'elig-pill ' + (it.eligible ? 'elig-ok' : 'elig-no');
+        el.innerHTML = it.eligible
+          ? '<i class="fas fa-circle-check"></i> 가입 가능'
+          : '<i class="fas fa-circle-xmark"></i> 일부 불가';
+      });
+      // 모달 표시
+      const okCount = items.filter(i => i.eligible).length;
+      document.getElementById('eligIcon').textContent = okCount === items.length ? '✅' : '⚠️';
+      document.getElementById('eligTitle').textContent =
+        okCount === items.length ? '전체 가입 가능합니다' : `${okCount}/${items.length}개사 가입 가능`;
+      document.getElementById('eligDesc').textContent =
+        okCount === items.length ? '5개 보험사 모두 실시간 인수 가능으로 확인되었습니다.' : '일부 보험사는 인수 거절·간편형 전환 필요';
+      document.getElementById('eligList').innerHTML = items.map(it => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface-2);border-radius:10px;margin-bottom:8px;">
+          <div>
+            <div style="font-weight:700;font-size:14px;">${it.insurer} · ${it.name}</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">${it.reason}</div>
+          </div>
+          <span class="elig-pill ${it.eligible ? 'elig-ok' : 'elig-no'}">
+            <i class="fas fa-${it.eligible ? 'circle-check' : 'circle-xmark'}"></i>
+            ${it.eligible ? '가입 가능' : '일부 불가'}
+          </span>
+        </div>`).join('');
+      document.getElementById('eligModal').classList.add('open');
+    }, 2400);
+  }
+  function closeElig() { document.getElementById('eligModal').classList.remove('open'); }
+
+  // 플랜 텍스트 리스트
+  const plans = [...(window.ED_DATA.plans[CAT] || []), ...window.ED_DATA.commonPlans];
+  document.getElementById('planList').innerHTML = plans.map(p => `
+    <div class="plan-item" onclick="selectPlanQuick('${p}')"><i class="fas fa-circle"></i> ${p}</div>
+  `).join('');
+  function selectPlanQuick(name) {
+    // 첫 두 상품을 자동 선택
+    selected = new Set(products.slice(0, 2).map(p => p.id));
+    renderProducts();
+    document.getElementById('planName').value = name.split(' :')[0].split(' :')[0];
+    savePlan();
+  }
+
+  // 플랜 저장
+  function savePlan() {
+    if (selected.size === 0) {
+      alert('저장할 상품을 1개 이상 선택해주세요.\n좌측 체크박스로 선택하실 수 있습니다.');
+      return;
+    }
+    const items = products.filter(p => selected.has(p.id));
+    document.getElementById('planPreview').textContent = items.map(p => `${p.insurer} ${p.name}`).join(' + ');
+    document.getElementById('planPremium').textContent = items.reduce((a,b)=>a+b.premium,0).toLocaleString() + '원';
+    if (!document.getElementById('planName').value)
+      document.getElementById('planName').value = `${cat.name} 종합 플랜`;
+    document.getElementById('saveModal').classList.add('open');
+  }
+  function closeSave() { document.getElementById('saveModal').classList.remove('open'); }
+  function confirmSave() {
+    const items = products.filter(p => selected.has(p.id));
+    window.ED.savePlan({
+      name: document.getElementById('planName').value || '내 플랜',
+      category: CAT,
+      productIds: [...selected],
+      productNames: items.map(p => `${p.insurer} ${p.name}`),
+      premium: items.reduce((a,b)=>a+b.premium,0),
+      memo: document.getElementById('planMemo').value,
+    });
+    closeSave();
+    if (confirm('플랜이 저장되었습니다! 마이페이지로 이동하시겠습니까?'))
+      location.href = '08-myplans.html';
+  }
+  function goSubscribe() {
+    if (selected.size === 0) return alert('가입할 상품을 1개 이상 선택해주세요.');
+    const first = [...selected][0];
+    location.href = `07-subscribe.html?cat=${CAT}&id=${first}`;
+  }
+</script>
+</body>
+</html>

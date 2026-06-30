@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct · 마이페이지</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js"></script>
+<style>
+  .my-hero { background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff;
+    border-radius: 24px; padding: 50px; display: grid; grid-template-columns: 1fr 360px; gap: 30px; position: relative; overflow: hidden; }
+  .my-hero::before { content: ''; position: absolute; right: -100px; top: -50px; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(0,199,174,0.18), transparent 60%); }
+  .my-hero h1 { font-size: 32px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .my-hero .sub { font-size: 14px; opacity: 0.78; margin-bottom: 24px; }
+  .my-stat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .my-stat-c { background: rgba(255,255,255,0.08); border-radius: 12px; padding: 18px; border: 1px solid rgba(255,255,255,0.15); }
+  .my-stat-c .num { font-size: 28px; font-weight: 900; color: var(--accent); }
+  .my-stat-c .lbl { font-size: 12px; opacity: 0.78; margin-top: 4px; }
+
+  .profile-card { background: rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;
+    border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(8px); position: relative; z-index: 1; }
+  .profile-card h4 { font-size: 13px; opacity: 0.7; margin-bottom: 14px; }
+  .profile-info { display: flex; gap: 14px; align-items: center; }
+  .profile-info .av { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; }
+  .profile-info .nm { font-size: 18px; font-weight: 800; }
+  .profile-info .ml { font-size: 12px; opacity: 0.7; }
+  .profile-meta { padding-top: 16px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: 12px; line-height: 2; opacity: 0.85; }
+
+  /* Tabs */
+  .my-tabs { display: flex; gap: 6px; margin: 36px 0 24px; border-bottom: 2px solid var(--border); }
+  .my-tab { padding: 14px 20px; font-size: 15px; font-weight: 600; color: var(--text-3);
+    border-bottom: 3px solid transparent; cursor: pointer; margin-bottom: -2px; transition: 0.18s; }
+  .my-tab:hover { color: var(--primary); }
+  .my-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+
+  /* Plan grid */
+  .plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .plan-card { background: #fff; border-radius: 16px; padding: 24px; border: 1px solid var(--border);
+    transition: 0.18s; }
+  .plan-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .plan-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .plan-cat { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px;
+    background: var(--primary-light); color: var(--primary); border-radius: 6px; font-size: 11px; font-weight: 800; }
+  .plan-act { color: var(--text-4); font-size: 14px; cursor: pointer; }
+  .plan-act:hover { color: var(--danger); }
+  .plan-name { font-size: 18px; font-weight: 800; margin: 8px 0; line-height: 1.4; }
+  .plan-prod { font-size: 13px; color: var(--text-3); line-height: 1.6; padding: 12px 0; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); margin: 8px 0 12px; }
+  .plan-memo { font-size: 12px; color: var(--text-4); background: var(--surface-2); padding: 8px 10px; border-radius: 6px; margin-bottom: 12px; }
+  .plan-bottom { display: flex; justify-content: space-between; align-items: center; }
+  .plan-prem { font-size: 22px; font-weight: 900; color: var(--primary); }
+  .plan-prem small { font-size: 12px; color: var(--text-3); font-weight: 500; }
+  .plan-date { font-size: 11px; color: var(--text-4); }
+  .plan-buttons { display: flex; gap: 6px; margin-top: 14px; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 80px 20px; }
+  .empty i { font-size: 60px; color: var(--text-4); margin-bottom: 18px; }
+  .empty h3 { font-size: 20px; font-weight: 700; color: var(--text-2); }
+  .empty p { font-size: 14px; color: var(--text-3); margin-top: 6px; }
+
+  /* My policies */
+  .pol-row { background: #fff; border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px; margin-bottom: 12px; display: grid; grid-template-columns: 60px 1fr auto auto; gap: 22px; align-items: center; }
+  .pol-ic { width: 50px; height: 50px; border-radius: 12px; background: var(--primary-light); color: var(--primary);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .pol-name { font-size: 16px; font-weight: 800; }
+  .pol-meta { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+  .pol-status { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    background: #d1fae5; color: #065f46; }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-inner">
+  <a href="01-home.html"><i class="fas fa-house"></i> 홈</a>
+  <a href="08-myplans.html"><i class="fas fa-user-circle"></i> 마이페이지</a>
+</div></div>
+<nav class="gnb"><div class="gnb-inner">
+  <a href="01-home.html" class="logo">EasyDirect<span class="dot">.</span><span class="badge-confirm">착·착·착</span></a>
+  <ul class="gnb-menu">
+    <li onclick="location.href='01-home.html'">홈</li>
+    <li onclick="location.href='03-category.html'">상품안내</li>
+    <li>내보험찾기</li>
+    <li onclick="location.href='06-ai-recommend.html'">AI 추천</li>
+    <li class="active">내 플랜</li>
+    <li>고객센터</li>
+  </ul>
+</div></nav>
+
+<div class="container">
+  <div class="my-hero">
+    <div style="position:relative; z-index:1;">
+      <h1>김이지님, 안녕하세요 👋</h1>
+      <p class="sub">이지다이렉트에서 저장하신 플랜과 가입 보험을 한 곳에서 관리하세요.</p>
+      <div class="my-stat">
+        <div class="my-stat-c"><div class="num" id="cntPlans">2</div><div class="lbl">저장된 플랜</div></div>
+        <div class="my-stat-c"><div class="num" id="cntPolicies">3</div><div class="lbl">가입한 보험</div></div>
+        <div class="my-stat-c"><div class="num" id="cntPremium">186,800</div><div class="lbl">월 납입 보험료(원)</div></div>
+        <div class="my-stat-c"><div class="num" id="cntCoverage">5.2억</div><div class="lbl">총 보장 한도</div></div>
+      </div>
+    </div>
+    <div class="profile-card">
+      <h4>내 프로필</h4>
+      <div class="profile-info">
+        <div class="av">김</div>
+        <div>
+          <div class="nm">김이지</div>
+          <div class="ml" id="loginMethod">카카오 로그인</div>
+        </div>
+      </div>
+      <div class="profile-meta">
+        <div>생년월일 · <b style="font-weight:700;">1989.03.21</b></div>
+        <div>휴대폰 · <b style="font-weight:700;">010-2345-7821</b></div>
+        <div>주소 · <b style="font-weight:700;">서울 강서구</b></div>
+        <div>직업 · <b style="font-weight:700;">사무직</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="my-tabs">
+    <div class="my-tab active" data-tab="plans">📑 내가 저장한 플랜</div>
+    <div class="my-tab" data-tab="policies">📋 가입한 보험</div>
+    <div class="my-tab" data-tab="quotes">🔍 최근 조회 내역</div>
+    <div class="my-tab" data-tab="settings">⚙️ 회원 정보</div>
+  </div>
+
+  <div class="tab-content" data-tab="plans">
+    <div class="flex-between" style="margin-bottom: 18px;">
+      <h3 style="font-size:20px; font-weight:800;">저장된 플랜</h3>
+      <button class="btn btn-primary" onclick="location.href='03-category.html?cat=cancer'"><i class="fas fa-plus"></i> 새 플랜 설계</button>
+    </div>
+    <div id="planGrid"></div>
+  </div>
+
+  <div class="tab-content" data-tab="policies" style="display:none;">
+    <div class="flex-between" style="margin-bottom: 18px;">
+      <h3 style="font-size:20px; font-weight:800;">가입한 보험 계약</h3>
+      <button class="btn btn-outline"><i class="fas fa-download"></i> 전체 증권 다운로드</button>
+    </div>
+
+    <div class="pol-row">
+      <div class="pol-ic"><i class="fas fa-ribbon"></i></div>
+      <div>
+        <div class="pol-name">프로미라이프 참좋은 암보험</div>
+        <div class="pol-meta">DB손해보험 · 증권 EZ-2026-00284-5821 · 청약 2026.06.30 · 100세/30년납 · 비갱신</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="text-xs text-3">월 보험료</div>
+        <div style="font-size:18px; font-weight:900; color:var(--primary);">58,000원</div>
+      </div>
+      <div><span class="pol-status">유지중</span></div>
+    </div>
+
+    <div class="pol-row">
+      <div class="pol-ic"><i class="fas fa-car"></i></div>
+      <div>
+        <div class="pol-name">애니카 다이렉트 자동차보험</div>
+        <div class="pol-meta">삼성화재 · 증권 EZ-2026-00128-9912 · 청약 2026.02.18 · 1년 갱신 · 만기 2027.02.17</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="text-xs text-3">월 보험료</div>
+        <div style="font-size:18px; font-weight:900; color:var(--primary);">64,200원</div>
+      </div>
+      <div><span class="pol-status">유지중</span></div>
+    </div>
+
+    <div class="pol-row">
+      <div class="pol-ic"><i class="fas fa-heart-pulse"></i></div>
+      <div>
+        <div class="pol-name">4세대 실손의료비보험</div>
+        <div class="pol-meta">삼성화재 · 증권 EZ-2025-00822-3441 · 청약 2025.11.05 · 1년 갱신/100세</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="text-xs text-3">월 보험료</div>
+        <div style="font-size:18px; font-weight:900; color:var(--primary);">11,200원</div>
+      </div>
+      <div><span class="pol-status">유지중</span></div>
+    </div>
+
+    <div style="background:var(--surface-2); border-radius:12px; padding:18px 20px; margin-top:18px; display:flex; gap:12px; align-items:center; font-size:13px; color:var(--text-3);">
+      <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+      모든 계약은 EasyDirect를 통해 가입되었으며, 보험금 청구·계약 변경·해지는 각 보험사 다이렉트 시스템과 연동되어 EasyDirect 앱에서 처리됩니다.
+    </div>
+  </div>
+
+  <div class="tab-content" data-tab="quotes" style="display:none;">
+    <h3 style="font-size:20px; font-weight:800; margin-bottom: 18px;">최근 조회 내역</h3>
+    <div class="card card-pad">
+      <table class="table">
+        <thead><tr><th>조회일시</th><th>카테고리</th><th>조회 상품 수</th><th>가장 저렴한 보험료</th><th>가장 비싼 보험료</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>2026.06.28 14:22</td><td>암보험</td><td>5개사</td><td><b style="color:var(--primary)">38,500원</b></td><td>58,000원</td><td><button class="btn btn-ghost btn-sm" onclick="location.href='03-category.html?cat=cancer'">다시 보기</button></td></tr>
+          <tr><td>2026.06.21 09:48</td><td>자동차보험</td><td>5개사</td><td><b style="color:var(--primary)">57,800원</b></td><td>64,200원</td><td><button class="btn btn-ghost btn-sm" onclick="location.href='03-category.html?cat=car'">다시 보기</button></td></tr>
+          <tr><td>2026.06.10 19:33</td><td>건강보험</td><td>5개사</td><td><b style="color:var(--primary)">65,400원</b></td><td>87,600원</td><td><button class="btn btn-ghost btn-sm" onclick="location.href='03-category.html?cat=medical'">다시 보기</button></td></tr>
+          <tr><td>2026.05.30 11:15</td><td>운전자/상해</td><td>5개사</td><td><b style="color:var(--primary)">15,800원</b></td><td>18,900원</td><td><button class="btn btn-ghost btn-sm" onclick="location.href='03-category.html?cat=driver'">다시 보기</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-content" data-tab="settings" style="display:none;">
+    <h3 style="font-size:20px; font-weight:800; margin-bottom: 18px;">회원 정보 설정</h3>
+    <div class="card card-pad">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;">
+        <div class="field"><label>이름</label><input value="김이지"></div>
+        <div class="field"><label>이메일</label><input value="kim.easy@email.com"></div>
+        <div class="field"><label>휴대폰</label><input value="010-2345-7821"></div>
+        <div class="field"><label>직업</label><select><option>사무직</option></select></div>
+        <div class="field" style="grid-column:1/-1;"><label>주소</label><input value="서울 강서구 양천로 401"></div>
+      </div>
+      <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+        <h4 style="font-size:14px; font-weight:800; margin-bottom:14px;">알림 설정</h4>
+        <div class="flex gap-16">
+          <label class="flex gap-8" style="align-items:center;"><input type="checkbox" checked> 보험료 인하 알림</label>
+          <label class="flex gap-8" style="align-items:center;"><input type="checkbox" checked> 만기 도래 알림</label>
+          <label class="flex gap-8" style="align-items:center;"><input type="checkbox"> 마케팅 정보 수신</label>
+        </div>
+      </div>
+      <div class="flex gap-12 mt-32">
+        <button class="btn btn-primary"><i class="fas fa-save"></i> 저장</button>
+        <button class="btn btn-ghost" onclick="window.ED.logout(); location.href='01-home.html'"><i class="fas fa-right-from-bracket"></i> 로그아웃</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div><div class="logo" style="color:#fff;">EasyDirect<span class="dot">.</span></div></div>
+    <div></div><div></div><div></div>
+  </div>
+  <div class="footer-bottom">© 2026 EZinsu Co., Ltd.</div>
+</footer>
+
+<script>
+  // Render plans
+  function renderPlans() {
+    const plans = window.ED.getPlans();
+    document.getElementById('cntPlans').textContent = plans.length;
+    if (plans.length === 0) {
+      document.getElementById('planGrid').innerHTML = `
+        <div class="empty">
+          <i class="fas fa-bookmark"></i>
+          <h3>아직 저장된 플랜이 없어요</h3>
+          <p>상품 비교 페이지에서 마음에 드는 상품을 골라 플랜으로 저장해보세요.</p>
+          <button class="btn btn-primary mt-24" onclick="location.href='03-category.html?cat=cancer'">
+            <i class="fas fa-plus"></i> 첫 플랜 만들기
+          </button>
+        </div>`;
+      return;
+    }
+    document.getElementById('planGrid').className = 'plan-grid';
+    document.getElementById('planGrid').innerHTML = plans.map(plan => {
+      const cat = window.ED_DATA.categories.find(c => c.id === plan.category) || { name: '플랜', icon: 'fa-shield' };
+      const d = new Date(plan.createdAt);
+      return `<div class="plan-card">
+        <div class="plan-top">
+          <span class="plan-cat"><i class="fas ${cat.icon}"></i> ${cat.name}</span>
+          <span class="plan-act" onclick="removePlan('${plan.id}')"><i class="fas fa-trash"></i></span>
+        </div>
+        <div class="plan-name">${plan.name}</div>
+        <div class="plan-prod">
+          ${(plan.productNames || []).map(n => `<div>• ${n}</div>`).join('') || '<div style="color:var(--text-4);">상품 정보 없음</div>'}
+        </div>
+        ${plan.memo ? `<div class="plan-memo"><i class="fas fa-pen-to-square"></i> ${plan.memo}</div>` : ''}
+        <div class="plan-bottom">
+          <div>
+            <div class="plan-prem">${(plan.premium || 0).toLocaleString()}<small>원/월</small></div>
+            <div class="plan-date">${d.getFullYear()}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getDate().toString().padStart(2,'0')} 저장</div>
+          </div>
+        </div>
+        <div class="plan-buttons">
+          <button class="btn btn-ghost btn-sm btn-block" onclick="location.href='03-category.html?cat=${plan.category}'">불러오기</button>
+          <button class="btn btn-primary btn-sm btn-block" onclick="location.href='07-subscribe.html?cat=${plan.category}&id=${(plan.productIds||[''])[0]}'">가입하기</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  function removePlan(id) {
+    if (confirm('이 플랜을 삭제하시겠습니까?')) {
+      window.ED.removePlan(id);
+      renderPlans();
+    }
+  }
+  renderPlans();
+
+  // Tabs
+  document.querySelectorAll('.my-tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.my-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = c.dataset.tab === t.dataset.tab ? 'block' : 'none');
+  }));
+
+  // 로그인 방법 표시
+  const u = window.ED.getUser();
+  if (u.loggedIn) {
+    document.getElementById('loginMethod').textContent =
+      u.provider === 'google' ? 'Google 로그인' :
+      u.provider === 'kakao' ? '카카오 로그인' :
+      u.provider === 'chacha' ? '착·착·착 플랫폼 연동' : '간편 로그인';
+  }
+</script>
+</body>
+</html>

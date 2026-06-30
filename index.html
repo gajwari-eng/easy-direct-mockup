@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct (이지다이렉트) — 통합 다이렉트몰 목업</title>
+<link rel="stylesheet" href="shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  body { background: #0f172a; color: #fff; min-height: 100vh; }
+  .hub { max-width: 1440px; margin: 0 auto; padding: 60px 40px; }
+
+  .hub-header { text-align: center; margin-bottom: 50px; }
+  .hub-header .badge { display: inline-block; background: linear-gradient(135deg, #0052cc, #00c7ae);
+    color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
+    letter-spacing: 1px; margin-bottom: 18px; }
+  .hub-header h1 { font-size: 48px; font-weight: 900; letter-spacing: -1.2px; line-height: 1.15; margin-bottom: 12px; }
+  .hub-header .accent { background: linear-gradient(120deg, #00c7ae, #0052cc);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hub-header p { font-size: 16px; opacity: 0.7; line-height: 1.6; max-width: 620px; margin: 0 auto; }
+
+  .hub-meta { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+  .hub-meta-chip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    padding: 8px 14px; border-radius: 20px; font-size: 13px; }
+  .hub-meta-chip i { color: var(--accent); margin-right: 4px; }
+
+  /* device tabs */
+  .device-tabs { display: flex; justify-content: center; gap: 8px; margin: 50px 0 30px; }
+  .device-tab { padding: 12px 24px; background: rgba(255,255,255,0.06); border-radius: 30px;
+    font-size: 14px; font-weight: 700; color: #cbd5e1; cursor: pointer; transition: 0.2s;
+    border: 1px solid rgba(255,255,255,0.1); display: flex; gap: 8px; align-items: center; }
+  .device-tab.active { background: linear-gradient(135deg, #0052cc, #00c7ae); color: #fff; border-color: transparent; }
+
+  /* screen grid */
+  .screens-section { display: none; }
+  .screens-section.active { display: block; }
+
+  .screens-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px; }
+  .screen-card { background: rgba(255,255,255,0.04); border-radius: 18px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: 0.25s; text-decoration: none; color: #fff; display: block; }
+  .screen-card:hover { border-color: rgba(0,199,174,0.5); transform: translateY(-4px);
+    box-shadow: 0 30px 60px -20px rgba(0,199,174,0.3); }
+  .screen-preview { aspect-ratio: 4/5; background: linear-gradient(135deg, #1e293b, #0f172a);
+    position: relative; overflow: hidden; }
+  .screen-preview iframe { position: absolute; top: 0; left: 0; width: 200%; height: 200%;
+    transform: scale(0.5); transform-origin: top left; border: 0; pointer-events: none; }
+  .screen-preview.mobile iframe { transform: scale(0.7); width: 142%; height: 142%; }
+  .screen-info { padding: 18px; }
+  .screen-num { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: 1px; }
+  .screen-name { font-size: 16px; font-weight: 800; margin: 4px 0 6px; }
+  .screen-desc { font-size: 12px; color: #94a3b8; line-height: 1.55; }
+  .screen-actions { display: flex; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .screen-actions a { flex: 1; padding: 8px; font-size: 11px; border-radius: 6px; text-align: center;
+    background: rgba(255,255,255,0.08); color: #fff; }
+  .screen-actions a:hover { background: var(--primary); }
+
+  /* features highlight */
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 60px;
+    padding-top: 50px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .feat-card { padding: 24px; background: rgba(255,255,255,0.04); border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08); }
+  .feat-card i { font-size: 24px; color: var(--accent); margin-bottom: 12px; }
+  .feat-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 6px; }
+  .feat-card p { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+
+  footer { text-align: center; margin-top: 60px; padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="hub">
+  <div class="hub-header">
+    <span class="badge">착·착·착 · BUSINESS PLAN 2026</span>
+    <h1>Easy-Direct <span class="accent">통합 다이렉트몰</span></h1>
+    <p>국내 모든 보험사의 다이렉트 보험 상품을 하나의 화면에서 비교·가입할 수 있는 통합 플랫폼.
+      <br>스크래핑 기술로 동일한 디자인을 유지하면서 각 보험사 실제 청약 프로세스를 활용합니다.</p>
+    <div class="hub-meta">
+      <span class="hub-meta-chip"><i class="fas fa-grip"></i> 8개 상품 카테고리</span>
+      <span class="hub-meta-chip"><i class="fas fa-building"></i> 5개사 동시 비교</span>
+      <span class="hub-meta-chip"><i class="fas fa-robot"></i> AI 1초 추천</span>
+      <span class="hub-meta-chip"><i class="fas fa-bookmark"></i> 플랜 저장 (localStorage)</span>
+      <span class="hub-meta-chip"><i class="fas fa-mobile-screen"></i> 데스크탑 + 모바일</span>
+    </div>
+  </div>
+
+  <div class="device-tabs">
+    <div class="device-tab active" data-d="desktop"><i class="fas fa-desktop"></i> 데스크탑 (8 화면)</div>
+    <div class="device-tab" data-d="mobile"><i class="fas fa-mobile-screen"></i> 모바일 (8 화면)</div>
+  </div>
+
+  <div class="screens-section active" id="sec-desktop">
+    <div class="screens-grid" id="gridDesktop"></div>
+  </div>
+  <div class="screens-section" id="sec-mobile">
+    <div class="screens-grid" id="gridMobile"></div>
+  </div>
+
+  <div class="features">
+    <div class="feat-card"><i class="fas fa-grip"></i>
+      <h4>8개 상품 카테고리</h4>
+      <p>실손·건강·암·운전자/상해·사망·화재·펫·자동차 통합 진입</p></div>
+    <div class="feat-card"><i class="fas fa-magnifying-glass-chart"></i>
+      <h4>보험료 일괄 조회</h4>
+      <p>인적사항 한 번 입력으로 5개사 보험료 동시 조회</p></div>
+    <div class="feat-card"><i class="fas fa-id-card"></i>
+      <h4>가입가능여부 사전 체크</h4>
+      <p>실명인증 후 보험사에 실시간 인수 여부 조회</p></div>
+    <div class="feat-card"><i class="fas fa-wand-magic-sparkles"></i>
+      <h4>AI 최적 상품 추천</h4>
+      <p>4축(보장/가격/한도/갱신) 점수화 후 가중치 기반 추천</p></div>
+    <div class="feat-card"><i class="fas fa-file-contract"></i>
+      <h4>약관 원문 그대로</h4>
+      <p>각 보험사 정식 약관을 한 글자도 다르지 않게 표시</p></div>
+    <div class="feat-card"><i class="fas fa-handshake"></i>
+      <h4>다이렉트 동일 청약</h4>
+      <p>7단계 표준 절차 (약관→인증→정보→고지→설계→결제)</p></div>
+    <div class="feat-card"><i class="fas fa-bookmark"></i>
+      <h4>내 플랜 저장</h4>
+      <p>localStorage 기반 실제 저장·불러오기·삭제 동작</p></div>
+    <div class="feat-card"><i class="fas fa-list"></i>
+      <h4>플랜 텍스트 추천</h4>
+      <p>수술비/후유장해/암치료비 등 카테고리별 플랜 제안</p></div>
+  </div>
+
+  <footer>
+    © 2026 EZinsu Co., Ltd. · 착·착·착 AI 보험금 조회 플랫폼 · 사업계획서 V1.2 기반 목업
+  </footer>
+</div>
+
+<script>
+  const screens = [
+    { num: '01', name: '메인', desc: '8개 상품 카테고리 진입 + 30초 통합조회 + 추천 상품', file: '01-home.html' },
+    { num: '02', name: '회원가입 / 로그인', desc: '구글·카카오 간편 로그인 + 착·착·착 연동', file: '02-auth.html' },
+    { num: '03', name: '카테고리 상품 리스트', desc: '5개사 비교 + 보험료 일괄조회 + 가입가능 + 플랜', file: '03-category.html?cat=cancer' },
+    { num: '04', name: '상품 상세', desc: '보장내용 전수 표기 (약관 원문 그대로)', file: '04-product-detail.html?cat=cancer&id=c4' },
+    { num: '05', name: '가입가능여부 체크', desc: '실명인증 → 5개사 인수 결과 매트릭스', file: '05-eligibility.html' },
+    { num: '06', name: 'AI 최적 상품 추천', desc: '1등 카드 크게 + 항목별 점수 비교 근거', file: '06-ai-recommend.html?cat=cancer' },
+    { num: '07', name: '가입 프로세스', desc: '약관→인증→계약자→피보험자→고지→설계→결제 (7단계)', file: '07-subscribe.html?cat=cancer&id=c4' },
+    { num: '08', name: '내 플랜 / 마이페이지', desc: '저장 플랜 + 가입 보험 + 조회 내역 + 설정', file: '08-myplans.html' },
+  ];
+
+  function renderGrid(device) {
+    const grid = document.getElementById('grid' + (device === 'desktop' ? 'Desktop' : 'Mobile'));
+    grid.innerHTML = screens.map(s => `
+      <a class="screen-card" href="${device}/${s.file}" target="_blank">
+        <div class="screen-preview ${device}">
+          <iframe src="${device}/${s.file}" loading="lazy" scrolling="no"></iframe>
+        </div>
+        <div class="screen-info">
+          <div class="screen-num">${device.toUpperCase()} · ${s.num}</div>
+          <div class="screen-name">${s.name}</div>
+          <div class="screen-desc">${s.desc}</div>
+          <div class="screen-actions">
+            <a href="${device}/${s.file}" target="_blank"><i class="fas fa-arrow-up-right-from-square"></i> 열기</a>
+          </div>
+        </div>
+      </a>`).join('');
+  }
+  renderGrid('desktop');
+  renderGrid('mobile');
+
+  document.querySelectorAll('.device-tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.device-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const d = t.dataset.d;
+    document.querySelectorAll('.screens-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + d).classList.add('active');
+  }));
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyDirect · 상품비교 (Mobile)</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js"></script>
+<style>
+  body { background: #f4f7fa; }
+  .m-app-bar { background: #fff; padding: 14px 20px; display: flex; align-items: center;
+    gap: 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+  .m-app-bar .back { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+  .m-app-bar h1 { font-size: 16px; font-weight: 800; flex: 1; }
+  .m-app-bar .ic { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-3); }
+
+  /* horizontal scroll tabs */
+  .m-cat-tabs { background: #fff; padding: 12px 16px; display: flex; gap: 6px; overflow-x: auto;
+    border-bottom: 1px solid var(--border); position: sticky; top: 60px; z-index: 49; }
+  .m-cat-tabs::-webkit-scrollbar { display: none; }
+  .m-cat-tab { padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    color: var(--text-3); background: var(--surface-2); white-space: nowrap; flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 5px; }
+  .m-cat-tab i { font-size: 12px; }
+  .m-cat-tab.active { background: var(--primary); color: #fff; }
+
+  /* Quote summary */
+  .m-quote-bar { background: linear-gradient(135deg, #0052cc, #1e6ddb); color: #fff;
+    margin: 14px 16px; padding: 14px 16px; border-radius: 14px; display: flex; gap: 8px;
+    align-items: center; flex-wrap: wrap; font-size: 11px; }
+  .m-quote-bar > span { padding: 4px 10px; background: rgba(255,255,255,0.18); border-radius: 12px; font-weight: 600; }
+  .m-quote-bar .edit { margin-left: auto; }
+
+  /* toolbar */
+  .m-toolbar { padding: 0 16px 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .m-toolbar button { padding: 7px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    background: #fff; border: 1px solid var(--border); color: var(--text-3); display: inline-flex; align-items: center; gap: 4px; }
+  .m-toolbar button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* product card */
+  .m-prod-list { padding: 0 16px; }
+  .m-prod-card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 10px;
+    border: 1.5px solid var(--border); transition: 0.18s; }
+  .m-prod-card.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,82,204,0.1); }
+  .m-pc-top { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .m-pc-top .ins { font-size: 12px; font-weight: 700; color: var(--text-2); }
+  .m-pc-top .check { margin-left: auto; }
+  .m-pc-top .check input { width: 20px; height: 20px; accent-color: var(--primary); }
+  .m-pc-name { font-size: 16px; font-weight: 800; line-height: 1.35; margin-bottom: 8px; }
+  .m-pc-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+  .m-pc-feats { font-size: 12px; color: var(--text-3); padding: 8px 10px; background: var(--surface-2); border-radius: 8px; margin-bottom: 12px; line-height: 1.55; }
+  .m-pc-feats div { display: flex; gap: 6px; padding: 2px 0; }
+  .m-pc-feats i { color: var(--accent-dark); font-size: 8px; margin-top: 4px; }
+  .m-pc-bottom { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .m-pc-price-label { font-size: 11px; color: var(--text-3); }
+  .m-pc-price { font-size: 22px; font-weight: 900; color: var(--primary); line-height: 1; }
+  .m-pc-actions { display: flex; gap: 6px; margin-top: 12px; }
+  .m-pc-actions button { flex: 1; padding: 10px; font-size: 12px; border-radius: 8px; font-weight: 700; }
+
+  /* eligibility chip */
+  .elig-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+    border-radius: 12px; font-size: 10px; font-weight: 700; }
+  .elig-pending { background: #fef3c7; color: #92400e; }
+  .elig-ok { background: #d1fae5; color: #065f46; }
+  .elig-no { background: #fee2e2; color: #991b1b; }
+
+  /* plans list */
+  .m-plan-list { background: linear-gradient(135deg, #fff, #f0f9ff);
+    margin: 20px 16px; border-radius: 16px; padding: 22px; border: 1px solid var(--border); }
+  .m-plan-list h3 { font-size: 15px; font-weight: 900; margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
+  .m-plan-list .sub { font-size: 11px; color: var(--text-3); margin-bottom: 14px; }
+  .m-plan-item { padding: 10px 12px; background: #fff; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12px; line-height: 1.5; margin-bottom: 6px;
+    display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+  .m-plan-item i { color: var(--primary); font-size: 6px; margin-top: 7px; flex-shrink: 0; }
+
+  /* Floating bottom CTA */
+  .m-cta-fixed { position: fixed; left: 0; right: 0; bottom: 0;
+    background: #fff; box-shadow: 0 -4px 12px rgba(0,0,0,0.08); padding: 14px 16px; display: flex; gap: 8px;
+    border-top: 1px solid var(--border); }
+  .m-cta-fixed button { flex: 1; padding: 14px; font-size: 14px; font-weight: 700; border-radius: 10px; }
+  .m-cta-counter { background: var(--primary); color: #fff; border-radius: 50%;
+    width: 18px; height: 18px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; margin-left: 6px; }
+
+  .m-bottom-pad { height: 100px; }
+</style>
+</head>
+<body>
+
+<div class="m-app-bar">
+  <div class="back" onclick="location.href='01-home.html'"><i class="fas fa-chevron-left"></i></div>
+  <h1 id="pgTitle">암보험 비교</h1>
+  <div class="ic"><i class="fas fa-magnifying-glass"></i></div>
+  <div class="ic" onclick="location.href='08-myplans.html'"><i class="fas fa-bookmark"></i></div>
+</div>
+
+<div class="m-cat-tabs" id="catTabs"></div>
+
+<div class="m-quote-bar" id="quoteBar"></div>
+
+<div class="m-toolbar">
+  <button onclick="setSort('price')"><i class="fas fa-won-sign"></i> 보험료↓</button>
+  <button onclick="setSort('coverage')"><i class="fas fa-shield"></i> 보장넓은순</button>
+  <button onclick="checkAllEligibility()"><i class="fas fa-id-card"></i> 가입가능 일괄</button>
+  <button class="primary" onclick="location.href='06-ai-recommend.html?cat='+CAT"><i class="fas fa-wand-magic-sparkles"></i> AI 추천</button>
+</div>
+
+<div class="m-prod-list" id="prodList"></div>
+
+<div class="m-plan-list">
+  <h3>💡 자주 설계되는 플랜</h3>
+  <div class="sub">탭하면 해당 플랜으로 자동 선택됩니다</div>
+  <div id="planList"></div>
+</div>
+
+<div class="m-bottom-pad"></div>
+
+<div class="m-cta-fixed">
+  <button class="btn btn-ghost" onclick="savePlan()"><i class="fas fa-bookmark"></i> 플랜 저장</button>
+  <button class="btn btn-primary" onclick="goSubscribe()">선택 가입하기 <span class="m-cta-counter" id="selCount">0</span></button>
+</div>
+
+<!-- 실명인증 모달 -->
+<div class="modal-backdrop" id="kycModal">
+  <div class="modal" style="max-width:340px; padding:24px;">
+    <span class="modal-close" onclick="closeKyc()">&times;</span>
+    <h3 style="font-size:18px; font-weight:900;">실명인증</h3>
+    <p class="text-xs text-3" style="margin-bottom:16px;">5개사 가입가능 여부 조회를 위해 필요</p>
+    <div class="field"><label>이름</label><input value="김이지"></div>
+    <div class="field"><label>주민번호 앞 7자리</label><input value="890321-1"></div>
+    <div class="field"><label>휴대폰</label><input value="010-2345-7821"></div>
+    <div class="field"><label>인증번호</label><input placeholder="6자리"></div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="runKyc()">실명인증 후 조회</button>
+  </div>
+</div>
+
+<!-- 결과 모달 -->
+<div class="modal-backdrop" id="eligModal">
+  <div class="modal" style="max-width:340px; padding:24px;">
+    <span class="modal-close" onclick="closeElig()">&times;</span>
+    <div style="text-align:center; margin-bottom:14px;">
+      <div id="eligIc" style="font-size:50px;">✅</div>
+      <h3 id="eligTitle" style="font-size:18px; font-weight:900; margin-top:8px;">조회 완료</h3>
+    </div>
+    <div id="eligList" style="max-height:300px; overflow-y:auto;"></div>
+    <button class="btn btn-accent btn-block btn-lg mt-16" onclick="closeElig()">확인</button>
+  </div>
+</div>
+
+<!-- 저장 모달 -->
+<div class="modal-backdrop" id="saveModal">
+  <div class="modal" style="max-width:340px; padding:24px;">
+    <span class="modal-close" onclick="closeSave()">&times;</span>
+    <h3 style="font-size:18px; font-weight:900; margin-bottom:14px;"><i class="fas fa-bookmark" style="color:var(--primary)"></i> 플랜 저장</h3>
+    <div class="field"><label>플랜 이름</label><input id="planName" placeholder="우리 가족 암 보험"></div>
+    <div class="field"><label>메모 (선택)</label><textarea id="planMemo" rows="2"></textarea></div>
+    <div style="background:var(--surface-2); padding:12px; border-radius:8px; margin-bottom:14px;">
+      <div class="text-xs text-3">월 합계</div>
+      <div style="font-size:18px; font-weight:900; color:var(--primary);" id="planPrem">0원</div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="confirmSave()">저장하기</button>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  let CAT = params.get('cat') || 'cancer';
+  let selected = new Set();
+  let products = [];
+  const cat = window.ED_DATA.categories.find(c => c.id === CAT) || window.ED_DATA.categories[2];
+  document.getElementById('pgTitle').textContent = `${cat.name} 비교`;
+
+  document.getElementById('catTabs').innerHTML = window.ED_DATA.categories.map(c => `
+    <a href="03-category.html?cat=${c.id}" class="m-cat-tab ${c.id === CAT ? 'active' : ''}">
+      <i class="fas ${c.icon}"></i> ${c.name}
+    </a>`).join('');
+
+  const u = window.ED.getQuote();
+  document.getElementById('quoteBar').innerHTML = `
+    <span>${u.birth.split('.')[0]}년생 ${u.gender === 'M' ? '남' : '여'}</span>
+    <span>${u.job}</span>
+    <span>${u.address}</span>
+    <a class="edit" href="01-home.html" style="color:rgba(255,255,255,0.85);"><i class="fas fa-pen"></i></a>`;
+
+  products = (window.ED_DATA.products[CAT] || window.ED_DATA.products.cancer).slice();
+  render();
+
+  function render() {
+    document.getElementById('prodList').innerHTML = products.map(p => `
+      <div class="m-prod-card ${selected.has(p.id) ? 'selected' : ''}">
+        <div class="m-pc-top">
+          <span class="tag ${p.type === '생보' ? 'tag-life' : 'tag-nonlife'}">${p.type}</span>
+          <span class="ins">${p.insurer}</span>
+          <span id="elig-${p.id}" class="elig-chip elig-pending"><i class="fas fa-circle-question"></i> 미확인</span>
+          <span class="check"><input type="checkbox" ${selected.has(p.id) ? 'checked' : ''} onchange="toggleSel('${p.id}')"></span>
+        </div>
+        <div class="m-pc-name" onclick="goDetail('${p.id}')">${p.name}</div>
+        <div class="m-pc-tags">
+          <span class="tag tag-gray">${p.plan}</span>
+          <span class="tag tag-blue">${p.renew}</span>
+        </div>
+        <div class="m-pc-feats">
+          ${p.feat.slice(0,2).map(f => `<div><i class="fas fa-circle"></i> ${f}</div>`).join('')}
+          <div style="margin-top:4px; padding-top:6px; border-top:1px dashed #e2e8f0;">
+            <b>주요 보장:</b> ${p.cancer_main}
+          </div>
+        </div>
+        <div class="m-pc-bottom">
+          <div><div class="m-pc-price-label">월 보험료</div></div>
+          <div class="m-pc-price">${p.premium.toLocaleString()}<small style="font-size:13px; color:var(--text-3); font-weight:600;">원</small></div>
+        </div>
+        <div class="m-pc-actions">
+          <button class="btn btn-ghost" onclick="goDetail('${p.id}')">상세보장</button>
+          <button class="btn btn-outline" onclick="checkOne('${p.id}')">가입가능</button>
+          <button class="btn btn-primary" onclick="subscribeOne('${p.id}')">가입</button>
+        </div>
+      </div>`).join('');
+    document.getElementById('selCount').textContent = selected.size;
+  }
+  function toggleSel(id) {
+    if (selected.has(id)) selected.delete(id); else selected.add(id);
+    render();
+  }
+  function setSort(by) {
+    if (by === 'price') products.sort((a,b) => a.premium - b.premium);
+    else products.sort((a,b) => b.scores.coverage - a.scores.coverage);
+    render();
+  }
+  function goDetail(id) { location.href = `04-product-detail.html?cat=${CAT}&id=${id}`; }
+  function subscribeOne(id) { location.href = `07-subscribe.html?cat=${CAT}&id=${id}`; }
+
+  function checkOne() { checkAllEligibility(); }
+  function checkAllEligibility() { document.getElementById('kycModal').classList.add('open'); }
+  function closeKyc() { document.getElementById('kycModal').classList.remove('open'); }
+  function runKyc() {
+    closeKyc();
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);';
+    ov.innerHTML = `<div style="background:#fff;padding:24px 30px;border-radius:16px;text-align:center;min-width:220px;">
+      <div class="spinner" style="width:28px;height:28px;border-width:3px;margin:0 auto 12px;"></div>
+      <div style="font-weight:700;font-size:13px;">5개사 가입가능 조회 중...</div></div>`;
+    document.body.appendChild(ov);
+    setTimeout(() => {
+      ov.remove();
+      products.forEach((p, i) => {
+        const ok = i !== 1;
+        const el = document.getElementById('elig-' + p.id);
+        el.className = 'elig-chip ' + (ok ? 'elig-ok' : 'elig-no');
+        el.innerHTML = ok ? '<i class="fas fa-check"></i> 가입가능' : '<i class="fas fa-xmark"></i> 일부불가';
+      });
+      const okCnt = products.filter((_,i) => i !== 1).length;
+      document.getElementById('eligIc').textContent = okCnt === products.length ? '✅' : '⚠️';
+      document.getElementById('eligTitle').textContent = `${okCnt}/${products.length}개사 가입 가능`;
+      document.getElementById('eligList').innerHTML = products.map((p, i) => {
+        const ok = i !== 1;
+        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--surface-2); border-radius:8px; margin-bottom:6px;">
+          <div><div style="font-size:13px; font-weight:700;">${p.insurer}</div>
+            <div style="font-size:11px; color:var(--text-3);">${p.name.slice(0,18)}...</div></div>
+          <span class="elig-chip ${ok ? 'elig-ok' : 'elig-no'}">${ok ? '가능' : '불가'}</span></div>`;
+      }).join('');
+      document.getElementById('eligModal').classList.add('open');
+    }, 2000);
+  }
+  function closeElig() { document.getElementById('eligModal').classList.remove('open'); }
+
+  // Plans
+  const plans = [...(window.ED_DATA.plans[CAT] || []), ...window.ED_DATA.commonPlans];
+  document.getElementById('planList').innerHTML = plans.map(p => `
+    <div class="m-plan-item"><i class="fas fa-circle"></i> ${p}</div>`).join('');
+
+  function savePlan() {
+    if (selected.size === 0) { alert('1개 이상 선택해주세요'); return; }
+    const items = products.filter(p => selected.has(p.id));
+    document.getElementById('planPrem').textContent = items.reduce((a,b)=>a+b.premium,0).toLocaleString() + '원';
+    document.getElementById('planName').value = `${cat.name} 종합 플랜`;
+    document.getElementById('saveModal').classList.add('open');
+  }
+  function closeSave() { document.getElementById('saveModal').classList.remove('open'); }
+  function confirmSave() {
+    const items = products.filter(p => selected.has(p.id));
+    window.ED.savePlan({
+      name: document.getElementById('planName').value || '내 플랜',
+      category: CAT,
+      productIds: [...selected],
+      productNames: items.map(p => `${p.insurer} ${p.name}`),
+      premium: items.reduce((a,b)=>a+b.premium,0),
+      memo: document.getElementById('planMemo').value,
+    });
+    closeSave();
+    if (confirm('저장 완료! 내 플랜으로 갈까요?')) location.href = '08-myplans.html';
+  }
+  function goSubscribe() {
+    if (selected.size === 0) return alert('1개 이상 선택해주세요');
+    const first = [...selected][0];
+    location.href = `07-subscribe.html?cat=${CAT}&id=${first}`;
+  }
+</script>
+</body>
+</html>

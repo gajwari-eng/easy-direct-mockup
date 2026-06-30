@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct · 가입가능여부 체크</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js"></script>
+<style>
+  .hero-elig { background: linear-gradient(135deg, #0f172a, #1e1b4b); color: #fff;
+    border-radius: 24px; padding: 50px; text-align: center; position: relative; overflow: hidden; }
+  .hero-elig::before { content: '\f2bb'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+    position: absolute; right: -40px; bottom: -60px; font-size: 280px; opacity: 0.04; }
+  .hero-elig h1 { font-size: 38px; font-weight: 900; letter-spacing: -0.7px; margin-bottom: 12px; }
+  .hero-elig p { font-size: 16px; opacity: 0.85; margin-bottom: 28px; max-width: 720px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+  .kyc-card { background: #fff; border-radius: 20px; padding: 36px;
+    margin-top: -50px; position: relative; z-index: 2; box-shadow: var(--shadow-lg); }
+  .kyc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .kyc-form-grid .field { margin-bottom: 0; }
+
+  .steps-mini { display: flex; gap: 0; margin-bottom: 28px; }
+  .step-mini { flex: 1; display: flex; align-items: center; gap: 10px;
+    padding: 16px 20px; background: var(--surface-2); border-radius: 12px; margin-right: 8px;
+    position: relative; transition: 0.2s; }
+  .step-mini:last-child { margin-right: 0; }
+  .step-mini.active { background: var(--primary); color: #fff; }
+  .step-mini.done { background: #d1fae5; color: #065f46; }
+  .step-mini .num { width: 28px; height: 28px; border-radius: 50%; background: #fff;
+    color: var(--text-3); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; flex-shrink: 0; }
+  .step-mini.active .num { color: var(--primary); }
+  .step-mini.done .num { color: #065f46; }
+
+  .result-table { width: 100%; border-collapse: collapse; background: #fff;
+    border-radius: 14px; overflow: hidden; border: 1px solid var(--border); margin-top: 24px; }
+  .result-table th { background: var(--surface-2); padding: 16px; font-size: 13px;
+    text-align: left; font-weight: 700; color: var(--text-3); border-bottom: 2px solid var(--border); }
+  .result-table td { padding: 18px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .result-table tr:last-child td { border-bottom: none; }
+
+  .result-icon { width: 36px; height: 36px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 16px; }
+  .icon-ok { background: #d1fae5; color: #065f46; }
+  .icon-no { background: #fee2e2; color: #991b1b; }
+  .icon-warn { background: #fef3c7; color: #92400e; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+  .summary-card { background: #fff; border-radius: 14px; padding: 24px; text-align: center; border: 1px solid var(--border); }
+  .summary-card .num { font-size: 36px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
+  .summary-card .lbl { font-size: 13px; color: var(--text-3); }
+  .summary-card .num.ok { color: var(--success); }
+  .summary-card .num.warn { color: var(--warn); }
+  .summary-card .num.danger { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-inner">
+  <a href="08-myplans.html"><i class="fas fa-user-circle"></i> 마이페이지</a>
+</div></div>
+<nav class="gnb"><div class="gnb-inner">
+  <a href="01-home.html" class="logo">EasyDirect<span class="dot">.</span><span class="badge-confirm">착·착·착</span></a>
+  <ul class="gnb-menu">
+    <li onclick="location.href='01-home.html'">홈</li>
+    <li onclick="location.href='03-category.html'">상품안내</li>
+    <li class="active">가입가능여부</li>
+    <li onclick="location.href='06-ai-recommend.html'">AI 추천</li>
+    <li onclick="location.href='08-myplans.html'">내 플랜</li>
+  </ul>
+</div></nav>
+
+<div class="container">
+  <div class="hero-elig">
+    <h1>가입가능여부 사전 체크</h1>
+    <p>실명인증 후 5개 보험사에 실시간으로 인수 가능 여부를 조회합니다.<br>
+       거절 걱정 없이, 확인된 결과만 보고 가입하세요.</p>
+    <div class="flex-center gap-12">
+      <span class="hero-chip" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); padding:8px 14px; border-radius:20px; font-size:13px;">
+        <i class="fas fa-shield-halved"></i> KCB/NICE 실명인증
+      </span>
+      <span class="hero-chip" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); padding:8px 14px; border-radius:20px; font-size:13px;">
+        <i class="fas fa-bolt"></i> 평균 2~3초 결과
+      </span>
+    </div>
+  </div>
+
+  <div class="kyc-card">
+    <div class="steps-mini">
+      <div class="step-mini" id="s1"><div class="num">1</div><div><b>본인 정보 입력</b><br><small style="opacity:0.7;">실명·생년월일·휴대폰</small></div></div>
+      <div class="step-mini" id="s2"><div class="num">2</div><div><b>실명인증</b><br><small style="opacity:0.7;">KCB/NICE</small></div></div>
+      <div class="step-mini" id="s3"><div class="num">3</div><div><b>5개사 조회</b><br><small style="opacity:0.7;">실시간 인수 체크</small></div></div>
+      <div class="step-mini" id="s4"><div class="num">4</div><div><b>결과 확인</b><br><small style="opacity:0.7;">상품별 가입여부</small></div></div>
+    </div>
+
+    <div id="formArea">
+      <h2 style="font-size:22px; font-weight:900; margin-bottom:6px;">본인 확인 정보를 입력해주세요</h2>
+      <p class="text-sm text-3" style="margin-bottom:24px;">입력 정보는 보험사 가입가능 조회 목적으로만 사용됩니다.</p>
+      <div class="kyc-form-grid">
+        <div class="field"><label>이름</label><input type="text" value="김이지" id="fName"></div>
+        <div class="field"><label>주민등록번호 앞 6자리</label><input type="text" value="890321" id="fRrn"></div>
+        <div class="field"><label>휴대폰 통신사</label>
+          <select id="fTelco"><option>SKT</option><option>KT</option><option>LG U+</option><option>알뜰폰</option></select></div>
+        <div class="field"><label>휴대폰 번호</label><input type="text" value="010-2345-7821" id="fPhone"></div>
+        <div class="field" style="grid-column:1/-1;"><label>인증번호 (6자리)</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" placeholder="문자로 받은 6자리 입력" id="fCode" style="flex:1">
+            <button class="btn btn-outline" onclick="alert('인증번호를 발송했습니다 (데모)')">인증번호 받기</button>
+          </div></div>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg mt-24" onclick="runCheck()">
+        <i class="fas fa-magnifying-glass"></i> 5개사 가입가능여부 조회
+      </button>
+    </div>
+
+    <div id="resultArea" style="display:none;">
+      <div class="summary-grid">
+        <div class="summary-card"><div class="num ok" id="cntOk">4</div><div class="lbl">가입 가능</div></div>
+        <div class="summary-card"><div class="num warn" id="cntWarn">1</div><div class="lbl">간편형 전환 필요</div></div>
+        <div class="summary-card"><div class="num danger" id="cntNo">0</div><div class="lbl">인수 거절</div></div>
+        <div class="summary-card"><div class="num" style="color:var(--primary);" id="cntBest">3</div><div class="lbl">표준체 인수</div></div>
+      </div>
+
+      <h3 style="font-size:18px; font-weight:800; margin-bottom:12px;">상품별 가입 가능여부</h3>
+      <table class="result-table">
+        <thead><tr>
+          <th width="56"></th><th>보험사 · 상품명</th><th>인수 결과</th>
+          <th>인수 사유</th><th width="160">월 보험료</th><th width="160"></th>
+        </tr></thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+
+      <div class="flex gap-12 mt-32">
+        <button class="btn btn-ghost btn-block" onclick="location.href='03-category.html'"><i class="fas fa-chevron-left"></i> 상품 목록</button>
+        <button class="btn btn-primary btn-block btn-lg" onclick="location.href='06-ai-recommend.html'"><i class="fas fa-wand-magic-sparkles"></i> 가능한 상품 중 AI 추천 받기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div><div class="logo" style="color:#fff;">EasyDirect<span class="dot">.</span></div></div>
+    <div></div><div></div><div></div>
+  </div>
+  <div class="footer-bottom">© 2026 EZinsu Co., Ltd.</div>
+</footer>
+
+<script>
+  document.getElementById('s1').classList.add('active');
+
+  function runCheck() {
+    // step 1 done, step 2 active
+    document.getElementById('s1').classList.remove('active');
+    document.getElementById('s1').classList.add('done');
+    document.getElementById('s2').classList.add('active');
+
+    // 로딩
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);';
+    ov.innerHTML = `<div style="background:#fff;padding:36px 44px;border-radius:20px;text-align:center;min-width:340px;">
+      <div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px;"></div>
+      <div style="font-weight:700;font-size:16px;" id="ovText">KCB 실명인증 진행 중...</div>
+      <div style="font-size:13px;color:var(--text-3);margin-top:6px;">잠시만 기다려주세요</div></div>`;
+    document.body.appendChild(ov);
+
+    setTimeout(() => {
+      ov.querySelector('#ovText').textContent = '5개 보험사 인수 시스템 조회 중...';
+      document.getElementById('s2').classList.remove('active');
+      document.getElementById('s2').classList.add('done');
+      document.getElementById('s3').classList.add('active');
+    }, 1500);
+
+    setTimeout(() => {
+      ov.remove();
+      document.getElementById('s3').classList.remove('active');
+      document.getElementById('s3').classList.add('done');
+      document.getElementById('s4').classList.add('active');
+      // show result
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('resultArea').style.display = 'block';
+      const products = window.ED_DATA.products.cancer;
+      // 시뮬: 인덱스 1 → 간편형 필요
+      document.getElementById('resultBody').innerHTML = products.map((p, i) => {
+        const isOk = i !== 1;
+        const isWarn = i === 1;
+        return `<tr>
+          <td><div class="result-icon ${isOk ? 'icon-ok' : (isWarn ? 'icon-warn' : 'icon-no')}">
+            <i class="fas fa-${isOk ? 'check' : (isWarn ? 'exclamation' : 'times')}"></i></div></td>
+          <td><div class="font-bold">${p.insurer}</div>
+              <div class="text-sm text-3" style="margin-top:2px;">${p.name}</div></td>
+          <td><span class="elig-pill ${isOk ? 'elig-ok' : (isWarn ? 'elig-pending' : 'elig-no')}"
+              style="padding:5px 10px; border-radius:20px; font-size:11px; font-weight:700;
+              background:${isOk ? '#d1fae5' : (isWarn ? '#fef3c7' : '#fee2e2')};
+              color:${isOk ? '#065f46' : (isWarn ? '#92400e' : '#991b1b')};">
+            ${isOk ? '가입 가능 (표준체)' : (isWarn ? '간편형으로 전환 필요' : '인수 거절')}</span></td>
+          <td class="text-sm" style="color:var(--text-3);">${
+            isOk ? '직전 5년 암 진단·치료 이력 없음' :
+            (isWarn ? '간편가입 고지문항 1번 해당 — 일반형 인수 거절' : '직전 2년 입원 이력 — 인수 거절')
+          }</td>
+          <td><b style="color:var(--primary); font-size:15px;">${p.premium.toLocaleString()}원</b></td>
+          <td>${isOk
+            ? `<button class="btn btn-primary btn-sm" onclick="location.href='07-subscribe.html?cat=cancer&id=${p.id}'">가입하기</button>`
+            : (isWarn ? `<button class="btn btn-ghost btn-sm">간편형 보기</button>` : `<button class="btn btn-ghost btn-sm" disabled>가입 불가</button>`)
+          }</td></tr>`;
+      }).join('');
+    }, 3000);
+  }
+</script>
+</body>
+</html>

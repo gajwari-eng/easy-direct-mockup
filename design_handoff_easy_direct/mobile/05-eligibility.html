@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyDirect · 가입가능여부 (Mobile)</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js"></script>
+<style>
+  body { background: #f4f7fa; padding-bottom: 30px; }
+  .m-app-bar { background: #fff; padding: 14px 20px; display: flex; align-items: center;
+    gap: 12px; border-bottom: 1px solid var(--border); }
+  .m-app-bar .back { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+  .m-app-bar h1 { font-size: 15px; font-weight: 800; flex: 1; }
+
+  .m-hero { background: linear-gradient(135deg, #0f172a, #1e1b4b); color: #fff;
+    padding: 30px 20px; text-align: center; }
+  .m-hero h1 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+  .m-hero p { font-size: 13px; opacity: 0.85; line-height: 1.55; }
+
+  .m-card { background: #fff; margin: 18px 16px; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); }
+
+  .m-steps { display: flex; gap: 6px; margin-bottom: 22px; }
+  .m-step { flex: 1; padding: 12px 8px; background: var(--surface-2); border-radius: 10px;
+    text-align: center; font-size: 11px; color: var(--text-3); }
+  .m-step.active { background: var(--primary); color: #fff; }
+  .m-step.done { background: #d1fae5; color: #065f46; }
+  .m-step .num { font-weight: 900; font-size: 14px; }
+
+  .result-card { padding: 14px; background: var(--surface-2); border-radius: 10px;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .result-card .ic { width: 36px; height: 36px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .result-card .ic.ok { background: #d1fae5; color: #065f46; }
+  .result-card .ic.no { background: #fee2e2; color: #991b1b; }
+  .result-card .ic.warn { background: #fef3c7; color: #92400e; }
+  .result-card .info { flex: 1; }
+  .result-card .info .name { font-size: 13px; font-weight: 700; }
+  .result-card .info .meta { font-size: 11px; color: var(--text-3); margin-top: 2px; line-height: 1.45; }
+  .result-card .info .premium { font-size: 14px; font-weight: 800; color: var(--primary); margin-top: 4px; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 18px; }
+  .summary-card { background: #fff; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid var(--border); }
+  .summary-card .num { font-size: 24px; font-weight: 900; line-height: 1; }
+  .summary-card .lbl { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="m-app-bar">
+  <div class="back" onclick="history.back()"><i class="fas fa-chevron-left"></i></div>
+  <h1>가입가능여부 체크</h1>
+</div>
+
+<div class="m-hero">
+  <div style="font-size:36px; margin-bottom:8px;">🪪</div>
+  <h1>실명인증 → 5개사 조회</h1>
+  <p>거절 걱정 없이, 확인된 결과만 보고 가입하세요.<br>평균 2~3초 소요</p>
+</div>
+
+<div class="m-card" id="formCard">
+  <div class="m-steps">
+    <div class="m-step active" id="s1"><div class="num">1</div><div>정보 입력</div></div>
+    <div class="m-step" id="s2"><div class="num">2</div><div>실명인증</div></div>
+    <div class="m-step" id="s3"><div class="num">3</div><div>5개사 조회</div></div>
+    <div class="m-step" id="s4"><div class="num">4</div><div>결과</div></div>
+  </div>
+
+  <div class="field"><label>이름</label><input value="김이지"></div>
+  <div class="field"><label>주민등록번호 앞 7자리</label><input value="890321-1"></div>
+  <div class="field"><label>휴대폰</label>
+    <div class="flex gap-8">
+      <input value="010-2345-7821" style="flex:1">
+      <button class="btn btn-outline btn-sm">인증발송</button>
+    </div></div>
+  <div class="field"><label>인증번호 (6자리)</label><input placeholder="문자로 받은 6자리"></div>
+
+  <button class="btn btn-primary btn-block btn-lg mt-16" onclick="runCheck()">
+    <i class="fas fa-magnifying-glass"></i> 5개사 가입가능여부 조회
+  </button>
+</div>
+
+<div class="m-card" id="resultCard" style="display:none;">
+  <div class="m-steps">
+    <div class="m-step done"><div class="num">1</div><div>정보 입력</div></div>
+    <div class="m-step done"><div class="num">2</div><div>실명인증</div></div>
+    <div class="m-step done"><div class="num">3</div><div>5개사 조회</div></div>
+    <div class="m-step active"><div class="num">4</div><div>결과</div></div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card"><div class="num" style="color:var(--success);" id="cntOk">4</div><div class="lbl">가입 가능</div></div>
+    <div class="summary-card"><div class="num" style="color:var(--warn);" id="cntWarn">1</div><div class="lbl">간편형 전환</div></div>
+    <div class="summary-card"><div class="num" style="color:var(--danger);" id="cntNo">0</div><div class="lbl">인수 거절</div></div>
+    <div class="summary-card"><div class="num" style="color:var(--primary);">93%</div><div class="lbl">조회 성공률</div></div>
+  </div>
+
+  <h3 style="font-size:14px; font-weight:800; margin-bottom:12px;">상품별 결과</h3>
+  <div id="resultList"></div>
+
+  <button class="btn btn-primary btn-block btn-lg mt-16" onclick="location.href='06-ai-recommend.html?cat=cancer'">
+    <i class="fas fa-wand-magic-sparkles"></i> 가능한 상품 중 AI 추천 받기
+  </button>
+  <button class="btn btn-ghost btn-block mt-12" onclick="location.href='03-category.html'">
+    <i class="fas fa-chevron-left"></i> 상품 목록
+  </button>
+</div>
+
+<script>
+  function runCheck() {
+    document.getElementById('s1').classList.remove('active');
+    document.getElementById('s1').classList.add('done');
+    document.getElementById('s2').classList.add('active');
+
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);';
+    ov.innerHTML = `<div style="background:#fff;padding:30px 36px;border-radius:18px;text-align:center;min-width:240px;">
+      <div class="spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto 14px;"></div>
+      <div id="ovText" style="font-weight:700;font-size:14px;">KCB 실명인증 진행 중...</div></div>`;
+    document.body.appendChild(ov);
+    setTimeout(() => ov.querySelector('#ovText').textContent = '5개 보험사 인수 시스템 조회 중...', 1300);
+    setTimeout(() => {
+      ov.remove();
+      document.getElementById('formCard').style.display = 'none';
+      document.getElementById('resultCard').style.display = 'block';
+      const products = window.ED_DATA.products.cancer;
+      document.getElementById('resultList').innerHTML = products.map((p, i) => {
+        const ok = i !== 1;
+        return `<div class="result-card">
+          <div class="ic ${ok ? 'ok' : 'warn'}"><i class="fas fa-${ok ? 'check' : 'exclamation'}"></i></div>
+          <div class="info">
+            <div class="name">${p.insurer} · ${p.name.length > 18 ? p.name.slice(0,18) + '...' : p.name}</div>
+            <div class="meta">${ok ? '표준체 인수 — 5년 내 치료력 없음' : '간편형으로 전환 시 인수 가능'}</div>
+            <div class="premium">${p.premium.toLocaleString()}원/월</div>
+          </div>
+          ${ok ? `<button class="btn btn-primary btn-sm" onclick="location.href='07-subscribe.html?cat=cancer&id=${p.id}'">가입</button>` : ''}
+        </div>`;
+      }).join('');
+    }, 2800);
+  }
+</script>
+</body>
+</html>

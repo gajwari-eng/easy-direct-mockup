@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Easy-Direct · 간편 로그인</title>
+<link rel="stylesheet" href="../shared/styles.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="../shared/data.js"></script>
+<script src="../shared/plan-storage.js" defer></script>
+<style>
+  body { background: linear-gradient(160deg, #f4f7fa 0%, #e6efff 100%); min-height: 100vh; }
+  .auth-shell { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+  .auth-visual { background: linear-gradient(135deg, #0052cc, #00c7ae); color: #fff;
+    padding: 80px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+  .auth-visual::before { content: ''; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 60%); }
+  .auth-visual .logo { color: #fff; font-size: 30px; }
+  .auth-visual .logo .dot { color: #fff; }
+  .auth-visual .badge-confirm { background: rgba(255,255,255,0.2); color: #fff; }
+  .auth-hero { position: relative; z-index: 1; }
+  .auth-hero h1 { font-size: 44px; font-weight: 900; line-height: 1.2; letter-spacing: -1px; margin-bottom: 18px; }
+  .auth-hero p { font-size: 16px; opacity: 0.92; line-height: 1.6; max-width: 440px; }
+  .auth-bullets { position: relative; z-index: 1; }
+  .auth-bullet { display: flex; gap: 14px; padding: 14px 0; align-items: flex-start; }
+  .auth-bullet .ic { width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .auth-bullet h4 { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+  .auth-bullet p { font-size: 13px; opacity: 0.86; }
+
+  .auth-form-wrap { display: flex; align-items: center; justify-content: center; padding: 60px; }
+  .auth-form { width: 100%; max-width: 420px; }
+  .auth-form h2 { font-size: 28px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .auth-form .sub { font-size: 14px; color: var(--text-3); margin-bottom: 36px; }
+
+  .social-btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 15px;
+    font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px;
+    border: 1.5px solid var(--border); cursor: pointer; transition: 0.18s; margin-bottom: 12px; }
+  .social-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .social-google { background: #fff; color: var(--text-1); }
+  .social-google .gicon { width: 22px; height: 22px; }
+  .social-kakao { background: #FEE500; color: #181600; border-color: #FEE500; }
+
+  .auth-divider { display: flex; align-items: center; gap: 14px;
+    color: var(--text-4); font-size: 13px; margin: 24px 0; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .chacha-link { background: linear-gradient(135deg, #f8fafc, #eef2ff);
+    border: 1.5px solid var(--primary-light); border-radius: 14px; padding: 20px;
+    display: flex; align-items: center; gap: 14px; cursor: pointer; transition: 0.18s; }
+  .chacha-link:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+  .chacha-link .ic { width: 44px; height: 44px; background: var(--primary); color: #fff;
+    border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .chacha-link h4 { font-size: 15px; font-weight: 800; }
+  .chacha-link p { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+  .auth-notice { margin-top: 32px; padding: 16px; background: var(--surface-2);
+    border-radius: 10px; font-size: 12px; color: var(--text-3); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-visual">
+    <a href="01-home.html" class="logo">EasyDirect<span class="dot">.</span><span class="badge-confirm">착·착·착</span></a>
+
+    <div class="auth-hero">
+      <h1>다이렉트 보험,<br>한 번의 가입으로<br>모든 보험사를 만나세요.</h1>
+      <p>이지다이렉트는 8개 카테고리·5개사 다이렉트 상품을 하나의 화면에서<br>비교하고 가입할 수 있도록 도와드립니다.</p>
+    </div>
+
+    <div class="auth-bullets">
+      <div class="auth-bullet">
+        <div class="ic"><i class="fas fa-bolt"></i></div>
+        <div><h4>SNS로 5초 가입</h4><p>구글·카카오 계정으로 본인인증과 회원가입을 동시에 진행</p></div>
+      </div>
+      <div class="auth-bullet">
+        <div class="ic"><i class="fas fa-shield-halved"></i></div>
+        <div><h4>금융보안 인증 적용</h4><p>금융감독원 마이데이터 표준 보안을 동일하게 적용합니다</p></div>
+      </div>
+      <div class="auth-bullet">
+        <div class="ic"><i class="fas fa-link"></i></div>
+        <div><h4>착·착·착에서 넘어오신 경우</h4><p>이미 입력된 고객정보를 자동으로 불러와 별도 입력 없이 가입</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-form">
+      <h2>로그인 / 회원가입</h2>
+      <p class="sub">간편 SNS 로그인으로 1초 만에 가입하세요.</p>
+
+      <button class="social-btn social-google" onclick="login('google')">
+        <svg class="gicon" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        구글 계정으로 시작하기
+      </button>
+
+      <button class="social-btn social-kakao" onclick="login('kakao')">
+        <i class="fas fa-comment" style="font-size:18px;"></i>
+        카카오로 시작하기
+      </button>
+
+      <div class="auth-divider">또는</div>
+
+      <div class="chacha-link" onclick="login('chacha')">
+        <div class="ic"><i class="fas fa-arrow-right-arrow-left"></i></div>
+        <div>
+          <h4>착·착·착 플랫폼에서 오셨나요?</h4>
+          <p>기존 회원정보를 그대로 불러와 빠르게 진행</p>
+        </div>
+        <i class="fas fa-chevron-right" style="color:var(--text-4);"></i>
+      </div>
+
+      <div class="auth-notice">
+        <i class="fas fa-info-circle"></i> 회원가입 시 <b>이용약관·개인정보처리방침·전자금융거래약관</b>에 동의한 것으로 간주됩니다. 가입 정보는 보험사 통합 조회 및 청약 진행 외에 사용되지 않습니다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function login(provider) {
+    window.ED.login(provider);
+    // 회원정보 미리 채워 표시
+    const msg = provider === 'google' ? '구글 계정으로 로그인 중...'
+               : provider === 'kakao' ? '카카오 계정으로 로그인 중...'
+               : '착·착·착 플랫폼에서 회원정보 불러오는 중...';
+    document.body.style.position = 'relative';
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);';
+    ov.innerHTML = `<div style="background:#fff;padding:36px 44px;border-radius:20px;text-align:center;">
+      <div class="spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px;"></div>
+      <div style="font-weight:700;font-size:16px;">${msg}</div>
+      <div style="font-size:13px;color:var(--text-3);margin-top:6px;">잠시만 기다려주세요</div>
+    </div>`;
+    document.body.appendChild(ov);
+    setTimeout(() => location.href = '01-home.html', 1400);
+  }
+</script>
+</body>
+</html>
